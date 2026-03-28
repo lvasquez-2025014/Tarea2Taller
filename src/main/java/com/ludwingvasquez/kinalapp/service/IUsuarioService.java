@@ -3,7 +3,7 @@ package com.ludwingvasquez.kinalapp.service;
 import com.ludwingvasquez.kinalapp.entity.Usuario;
 import java.util.List;
 import java.util.Optional;
-
+//
 public interface IUsuarioService {
 
     List<Usuario> listarTodos();
