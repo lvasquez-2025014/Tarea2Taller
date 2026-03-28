@@ -1,7 +1,7 @@
 package com.ludwingvasquez.kinalapp.entity;
 
 import jakarta.persistence.*;
-
+//.
 @Entity
 @Table(name = "clientes")
 public class Cliente {
