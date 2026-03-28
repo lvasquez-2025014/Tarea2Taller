@@ -3,7 +3,7 @@ package com.ludwingvasquez.kinalapp.entity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-
+//
 @Entity
 @Table(name = "detalles_ventas")
 public class DetalleVenta {
