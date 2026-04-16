@@ -3,7 +3,7 @@ package com.ludwingvasquez.kinalapp.service;
 import com.ludwingvasquez.kinalapp.entity.Cliente;
 import java.util.List;
 import java.util.Optional;
-//
+
 public interface IClienteService {
 
     List<Cliente> listarTodos();

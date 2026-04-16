@@ -1,29 +1,34 @@
 package com.ludwingvasquez.kinalapp.service;
 
 import com.ludwingvasquez.kinalapp.entity.Venta;
+import com.ludwingvasquez.kinalapp.entity.DetalleVenta;
 import com.ludwingvasquez.kinalapp.repository.VentasRepository;
 import com.ludwingvasquez.kinalapp.repository.ClienteRepository;
 import com.ludwingvasquez.kinalapp.repository.UsuarioRepository;
+import com.ludwingvasquez.kinalapp.repository.DetalleVentaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-//
+
 @Service
 public class VentaService implements IVentaService {
 
     private final VentasRepository ventasRepository;
     private final ClienteRepository clienteRepository;
     private final UsuarioRepository usuarioRepository;
+    private final DetalleVentaRepository detalleVentaRepository;
 
     public VentaService(VentasRepository ventasRepository,
                         ClienteRepository clienteRepository,
-                        UsuarioRepository usuarioRepository) {
+                        UsuarioRepository usuarioRepository,
+                        DetalleVentaRepository detalleVentaRepository) {
         this.ventasRepository = ventasRepository;
         this.clienteRepository = clienteRepository;
         this.usuarioRepository = usuarioRepository;
+        this.detalleVentaRepository = detalleVentaRepository;
     }
 
     @Override
@@ -93,5 +98,59 @@ public class VentaService implements IVentaService {
     @Transactional(readOnly = true)
     public List<Venta> listarActivas() {
         return ventasRepository.findByEstado(1L);
+    }
+
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public long contarVentasPorCliente(String dpiCliente) {
+        return ventasRepository.findAll().stream()
+            .filter(v -> v.getCliente() != null 
+                && dpiCliente.equals(v.getCliente().getDPICliente())
+                && v.getEstado() != null && v.getEstado() == 1)
+            .count();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public double calcularTotalVentasPorCliente(String dpiCliente) {
+        return ventasRepository.findAll().stream()
+            .filter(v -> v.getCliente() != null 
+                && dpiCliente.equals(v.getCliente().getDPICliente())
+                && v.getEstado() != null && v.getEstado() == 1)
+            .flatMap(v -> v.getDetalles() != null ? v.getDetalles().stream() : java.util.stream.Stream.empty())
+            .filter(d -> d.getEstado() != null && d.getEstado() == 1)
+            .mapToDouble(d -> (d.getCantidad() != null ? d.getCantidad() : 0) 
+                          * (d.getPrecioUnitario() != null ? d.getPrecioUnitario() : 0.0))
+            .sum();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public int contarTotalVentas() {
+        return (int) ventasRepository.findAll().stream()
+            .filter(v -> v.getEstado() != null && v.getEstado() == 1)
+            .count();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public double calcularIngresosTotales() {
+        return detalleVentaRepository.findAll().stream()
+            .filter(d -> d.getEstado() != null && d.getEstado() == 1)
+            .mapToDouble(d -> (d.getCantidad() != null ? d.getCantidad() : 0) 
+                          * (d.getPrecioUnitario() != null ? d.getPrecioUnitario() : 0.0))
+            .sum();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Venta> listarVentasPorCliente(String dpiCliente) {
+        return ventasRepository.findAll().stream()
+            .filter(v -> v.getCliente() != null 
+                && dpiCliente.equals(v.getCliente().getDPICliente())
+                && v.getEstado() != null && v.getEstado() == 1)
+            .toList();
     }
 }

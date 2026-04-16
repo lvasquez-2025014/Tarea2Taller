@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clientes - Kinal App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy-deep: #0a1628;
+      --navy-dark: #0d1b2a;
+      --navy-medium: #1b263b;
+      --gold: #c9a84c;
+      --gold-light: #e0c066;
+      --gold-dark: #a88a3a;
+      --flame: #e63946;
+      --text-primary: #e8e6e3;
+      --text-secondary: #b8b5b0;
+      --text-muted: #8a857d;
+      --text-dim: #6b6560;
+      --success: #22c55e;
+      --error: #ef4444;
+      --warning: #f59e0b;
+      --info: #06b6d4;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: var(--navy-deep); color: var(--text-primary); min-height: 100vh; }
+
+    /* ==================== SIDEBAR ==================== */
+    .sidebar {
+      position: fixed; left: 0; top: 0; width: 260px; height: 100vh;
+      background: linear-gradient(180deg, rgba(13, 27, 42, 0.98) 0%, rgba(11, 22, 34, 0.98) 100%);
+      border-right: 1px solid rgba(201, 168, 76, 0.15); z-index: 100;
+      display: flex; flex-direction: column; padding: 24px 0;
+    }
+    .logo-container { padding: 0 20px 24px; border-bottom: 1px solid rgba(201, 168, 76, 0.1); margin-bottom: 16px; }
+    .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .logo-icon {
+      width: 42px; height: 42px;
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      overflow: hidden; background: transparent;
+    }
+    .logo-icon img { width: 100%; height: 100%; object-fit: cover; }
+    .logo-text { font-family: 'Cinzel', serif; font-size: 1.3rem; font-weight: 600; color: var(--gold); letter-spacing: 1px; }
+
+    .nav-section { padding: 8px 16px; }
+    .nav-section-title { font-size: 0.7rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; padding: 0 12px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+      color: var(--text-secondary); text-decoration: none; font-size: 0.88rem;
+      border-radius: 8px; transition: all 0.2s; cursor: pointer; position: relative;
+    }
+    .nav-item:hover { background: rgba(201, 168, 76, 0.08); color: var(--text-primary); }
+    .nav-item.active { background: linear-gradient(90deg, rgba(201, 168, 76, 0.15) 0%, transparent 100%); color: var(--gold); }
+    .nav-item.active::before {
+      content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      width: 3px; height: 60%; background: linear-gradient(180deg, var(--gold), var(--flame)); border-radius: 0 2px 2px 0;
+    }
+    .nav-icon { width: 18px; height: 18px; flex-shrink: 0; }
+    .nav-icon svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+    .sidebar-footer { margin-top: auto; padding: 16px; border-top: 1px solid rgba(201, 168, 76, 0.08); }
+    .user-card { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(201, 168, 76, 0.05); border-radius: 10px; border: 1px solid rgba(201, 168, 76, 0.1); }
+    .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--gold-dark), var(--gold)); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.8rem; color: var(--navy-deep); }
+    .user-name { font-size: 0.85rem; font-weight: 500; color: var(--text-primary); }
+    .user-role { font-size: 0.7rem; color: var(--text-muted); }
+
+    /* ==================== MAIN CONTENT ==================== */
+    .main-content { margin-left: 260px; min-height: 100vh; }
+    .top-header {
+      position: sticky; top: 0; z-index: 50; height: 64px;
+      background: rgba(10, 22, 40, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(201, 168, 76, 0.1); display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px;
+    }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .page-title { font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
+    .breadcrumb { font-size: 0.78rem; color: var(--text-muted); }
+    .breadcrumb a { color: var(--gold); text-decoration: none; }
+
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .btn-header {
+      display: flex; align-items: center; gap: 8px; padding: 8px 16px;
+      background: rgba(201, 168, 76, 0.1); border: 1px solid rgba(201, 168, 76, 0.2);
+      border-radius: 8px; color: var(--gold); font-size: 0.8rem; font-weight: 500;
+      cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+    .btn-header:hover { background: rgba(201, 168, 76, 0.2); }
+    .btn-header svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    /* ==================== CONTENT ==================== */
+    .content { padding: 28px; }
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 { font-family: 'Cinzel', serif; font-size: 1.5rem; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+    .page-header p { font-size: 0.85rem; color: var(--text-muted); }
+
+    .actions-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold)); border: none;
+      border-radius: 8px; color: var(--navy-deep); font-size: 0.85rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(201, 168, 76, 0.3); }
+    .btn-primary svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    /* ==================== SEARCH ==================== */
+    .search-box {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(201, 168, 76, 0.06); border: 1px solid rgba(201, 168, 76, 0.1);
+      border-radius: 10px; padding: 8px 14px;
+      transition: all 0.2s ease;
+    }
+    .search-box:focus-within {
+      background: rgba(201, 168, 76, 0.1);
+      border-color: rgba(201, 168, 76, 0.3);
+    }
+    .search-box svg { width: 18px; height: 18px; stroke: var(--gold); stroke-width: 2; }
+    .search-box input {
+      background: transparent; border: none; color: var(--text-primary);
+      font-size: 0.85rem; outline: none; width: 200px;
+    }
+    .search-box input::placeholder { color: var(--text-muted); }
+
+    /* ==================== TABLE ==================== */
+    .card {
+      background: rgba(13, 27, 42, 0.6); backdrop-filter: blur(20px);
+      border: 1px solid rgba(201, 168, 76, 0.1); border-radius: 12px; overflow: hidden;
+    }
+    .card-header {
+      padding: 20px 24px; border-bottom: 1px solid rgba(201, 168, 76, 0.1);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-title { font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 600; color: var(--text-primary); }
+    .card-subtitle { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: rgba(201, 168, 76, 0.05); }
+    th { padding: 14px 20px; text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--gold); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid rgba(201, 168, 76, 0.1); }
+    td { padding: 14px 20px; font-size: 0.85rem; color: var(--text-secondary); border-bottom: 1px solid rgba(201, 168, 76, 0.05); }
+    tbody tr:hover { background: rgba(201, 168, 76, 0.03); }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .client-info { display: flex; align-items: center; gap: 12px; }
+    .client-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 0.8rem; color: var(--navy-deep);
+    }
+    .client-name { font-weight: 500; color: var(--text-primary); }
+    .client-dpi { font-size: 0.75rem; color: var(--text-muted); }
+
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; }
+    .badge-success { background: rgba(34, 197, 94, 0.15); color: var(--success); }
+    .badge-error { background: rgba(239, 68, 68, 0.15); color: var(--error); }
+
+    .actions { display: flex; gap: 8px; }
+    .btn-action {
+      padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 500;
+      cursor: pointer; transition: all 0.2s; text-decoration: none; border: none;
+    }
+    .btn-view { background: rgba(6, 182, 212, 0.15); color: var(--info); }
+    .btn-view:hover { background: rgba(6, 182, 212, 0.25); }
+    .btn-edit { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .btn-edit:hover { background: rgba(245, 158, 11, 0.25); }
+    .btn-delete { background: rgba(239, 68, 68, 0.15); color: var(--error); }
+    .btn-delete:hover { background: rgba(239, 68, 68, 0.25); }
+
+    .empty-state { padding: 60px 20px; text-align: center; }
+    .empty-state-icon { width: 64px; height: 64px; margin: 0 auto 16px; background: rgba(201, 168, 76, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .empty-state-icon svg { width: 32px; height: 32px; stroke: var(--gold); fill: none; stroke-width: 1.5; }
+    .empty-state h3 { font-family: 'Cinzel', serif; font-size: 1.1rem; color: var(--text-primary); margin-bottom: 8px; }
+    .empty-state p { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* Alert */
+    .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 0.85rem; }
+    .alert-error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--error); }
+    .alert-success { background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); color: var(--success); }
+
+    /* Mobile Menu Toggle - CSS Only */
+    #sidebar-toggle { display: none; }
+    .menu-btn {
+      display: none; width: 40px; height: 40px; align-items: center; justify-content: center;
+      background: rgba(201, 168, 76, 0.1); border: 1px solid rgba(201, 168, 76, 0.2);
+      border-radius: 8px; cursor: pointer; color: var(--gold);
+    }
+    .menu-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .close-sidebar {
+      display: none; position: absolute; top: 16px; right: 16px;
+      width: 32px; height: 32px; align-items: center; justify-content: center;
+      background: rgba(201, 168, 76, 0.1); border: 1px solid rgba(201, 168, 76, 0.2);
+      border-radius: 8px; color: var(--gold); cursor: pointer; z-index: 101;
+    }
+    .close-sidebar svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .sidebar-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 99; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    #sidebar-toggle:checked ~ .sidebar-overlay { opacity: 1; pointer-events: auto; }
+    
+    /* Back Button */
+    .btn-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; background: rgba(201, 168, 76, 0.08);
+      border: 1px solid rgba(201, 168, 76, 0.15); border-radius: 8px;
+      color: var(--text-secondary); font-size: 0.8rem; font-weight: 500;
+      text-decoration: none; transition: all 0.2s;
+    }
+    .btn-back:hover { background: rgba(201, 168, 76, 0.15); color: var(--gold); }
+    .btn-back svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .menu-btn { display: flex; }
+      .close-sidebar { display: flex; }
+      .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+      #sidebar-toggle:checked ~ .sidebar { transform: translateX(0); }
+      #sidebar-toggle:checked ~ .sidebar-overlay { display: block; }
+      .main-content { margin-left: 0; }
+      .content { padding: 20px 16px; }
+      .page-title { font-size: 0.95rem; }
+      .actions-bar { flex-direction: column; gap: 12px; align-items: stretch; }
+      .search-box { max-width: none; }
+      .table-container { overflow-x: auto; }
+      table { min-width: 600px; }
+    }
+  </style>
+</head>
+<body>
+  <input type="checkbox" id="sidebar-toggle">
+  <label for="sidebar-toggle" class="sidebar-overlay"></label>
+  
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <label for="sidebar-toggle" class="close-sidebar" title="Cerrar menú">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </label>
+    <div class="logo-container">
+      <a href="/dashboard" class="logo">
+        <div class="logo-icon"><img src="/img/logo.png" alt="KINAL"></div>
+        <span class="logo-text">KINAL APP</span>
+      </a>
+    </div>
+    <nav>
+      <div class="nav-section">
+        <div class="nav-section-title">Principal</div>
+        <a href="/dashboard" class="nav-item">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg></span>
+          Dashboard
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Gestión</div>
+        <a href="/productos/dashboard" class="nav-item">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span>
+          Productos
+        </a>
+        <a href="/clientes/dashboard" class="nav-item active">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>
+          Clientes
+        </a>
+        <a href="/ventas/dashboard" class="nav-item">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></span>
+          Ventas
+        </a>
+        <a href="/usuarios/dashboard" class="nav-item">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+          Usuarios
+        </a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" th:text="${inicialesUsuario?:'U'}">U</div>
+        <div>
+          <div class="user-name" th:text="${nombreUsuario?:'Usuario'}">Usuario</div>
+          <div class="user-role" th:text="${rolUsuario?:'User'}">User</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <header class="top-header">
+      <div class="header-left">
+        <label for="sidebar-toggle" class="menu-btn" title="Menú">
+          <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </label>
+        <a href="/clientes/dashboard" class="btn-back">
+          <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12,19 5,12 12,5"/></svg>
+          Volver
+        </a>
+        <h1 class="page-title">Lista de Clientes</h1>
+        <span class="breadcrumb"><a href="/dashboard">Dashboard</a> / <a href="/clientes/dashboard">Clientes</a> / Lista</span>
+      </div>
+      <div class="header-right">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <form th:action="@{/clientes}" method="get" style="display: contents;">
+            <input type="text" name="search" placeholder="Buscar clientes..." th:value="${param.search}">
+          </form>
+        </div>
+        <a href="/clientes/nuevo" class="btn-header">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo Cliente
+        </a>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="page-header">
+        <h1>Gestión de Clientes</h1>
+        <p>Administra la información de tus clientes y sus datos de contacto</p>
+      </div>
+
+      <div th:if="${param.error}" class="alert alert-error" th:text="${param.error}"></div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Clientes Registrados</div>
+            <div class="card-subtitle" th:text="${#lists.size(clientes) + ' clientes en total'}">0 clientes en total</div>
+          </div>
+        </div>
+        <div class="table-container">
+          <table id="clientesTable">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>DPI</th>
+                <th>Dirección</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="cliente : ${clientes}">
+                <td>
+                  <div class="client-info">
+                    <div class="client-avatar" th:text="${#strings.substring(cliente.nombreCliente,0,1) + #strings.substring(cliente.apellidoCliente,0,1)}">CM</div>
+                    <div>
+                      <div class="client-name" th:text="${cliente.nombreCliente + ' ' + cliente.apellidoCliente}"></div>
+                      <div class="client-dpi" th:text="'DPI: ' + ${cliente.DPICliente}"></div>
+                    </div>
+                  </div>
+                </td>
+                <td th:text="${cliente.DPICliente}"></td>
+                <td th:text="${cliente.direccion}"></td>
+                <td>
+                  <span class="badge" th:class="${cliente.estado == 1} ? 'badge-success' : 'badge-error'" th:text="${cliente.estado == 1} ? 'Activo' : 'Inactivo'"></span>
+                </td>
+                <td>
+                  <div class="actions">
+                    <a th:href="@{/clientes/{dpi}(dpi=${cliente.DPICliente})}" class="btn-action btn-view">Ver</a>
+                    <a th:href="@{/clientes/editar/{dpi}(dpi=${cliente.DPICliente})}" class="btn-action btn-edit">Editar</a>
+                    <a th:href="@{/clientes/eliminar/{dpi}(dpi=${cliente.DPICliente})}" class="btn-action btn-delete">Eliminar</a>
+                  </div>
+                </td>
+              </tr>
+              <tr th:if="${#lists.isEmpty(clientes)}">
+                <td colspan="5">
+                  <div class="empty-state">
+                    <div class="empty-state-icon">
+                      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                    </div>
+                    <h3>No hay clientes registrados</h3>
+                    <p>Comienza agregando tu primer cliente al sistema</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

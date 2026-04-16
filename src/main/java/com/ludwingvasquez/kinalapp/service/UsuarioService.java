@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-//
+
 @Service
 public class UsuarioService implements IUsuarioService {
 
@@ -67,14 +67,20 @@ public class UsuarioService implements IUsuarioService {
         return usuarioRepository.existsById(codigoUsuario);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Usuario> buscarPorUsername(String username) {
+        return usuarioRepository.findByUsername(username);
+    }
+
     private void validarUsuario(Usuario usuario) {
         Optional.ofNullable(usuario.getUsername())
                 .filter(un -> !un.trim().isEmpty())
                 .orElseThrow(() -> new IllegalArgumentException("El nombre de usuario es obligatorio"));
 
         Optional.ofNullable(usuario.getPassword())
-                .filter(pass -> pass.trim().length() >= 8)
-                .orElseThrow(() -> new IllegalArgumentException("La contraseña debe tener al menos 8 caracteres"));
+                .filter(pass -> pass.trim().length() >= 3)
+                .orElseThrow(() -> new IllegalArgumentException("La contraseña debe tener al menos 3 caracteres"));
 
         Optional.ofNullable(usuario.getEmail())
                 .filter(email -> email.contains("@") && email.contains("."))

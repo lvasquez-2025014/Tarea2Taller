@@ -4,7 +4,7 @@ import com.ludwingvasquez.kinalapp.entity.DetalleVenta;
 
 import java.util.List;
 import java.util.Optional;
-//
+
 public interface IDetalleVentaService {
     List<DetalleVenta> listarTodos();
     DetalleVenta guardar(DetalleVenta detalleVenta);

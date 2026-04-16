@@ -2,13 +2,14 @@ package com.ludwingvasquez.kinalapp.controller;
 
 import com.ludwingvasquez.kinalapp.entity.Producto;
 import com.ludwingvasquez.kinalapp.service.IProductoService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpSession;
 import java.util.List;
-//
-@RestController
+
+@Controller
 @RequestMapping("/productos")
 public class ProductoController {
 
@@ -18,47 +19,95 @@ public class ProductoController {
         this.productoService = productoService;
     }
 
+    @ModelAttribute
+    public void agregarUsuarioAlModelo(Model model, HttpSession session) {
+        String nombreUsuario = (String) session.getAttribute("nombreUsuario");
+        String emailUsuario = (String) session.getAttribute("emailUsuario");
+        String rolUsuario = (String) session.getAttribute("rolUsuario");
+        
+        if (nombreUsuario != null) {
+            model.addAttribute("nombreUsuario", nombreUsuario);
+            model.addAttribute("emailUsuario", emailUsuario);
+            model.addAttribute("rolUsuario", rolUsuario != null ? rolUsuario : "Usuario");
+            model.addAttribute("inicialesUsuario", obtenerIniciales(nombreUsuario));
+        }
+    }
+    
+    private String obtenerIniciales(String nombre) {
+        if (nombre == null || nombre.isEmpty()) {
+            return "U";
+        }
+        String[] partes = nombre.split("[.\\s@]+");
+        if (partes.length >= 2) {
+            return (partes[0].substring(0, 1) + partes[partes.length - 1].substring(0, 1)).toUpperCase();
+        }
+        return nombre.substring(0, Math.min(2, nombre.length())).toUpperCase();
+    }
+
+    @GetMapping("/dashboard")
+    public String dashboard(Model model) {
+        List<Producto> productos = productoService.listarTodos();
+        model.addAttribute("productos", productos);
+        model.addAttribute("totalProductos", productos.size());
+        return "productos/dashboard";
+    }
+
     @GetMapping
-    public ResponseEntity<List<Producto>> listar() {
-        return ResponseEntity.ok(productoService.listarTodos());
+    public String listar(Model model) {
+        List<Producto> productos = productoService.listarTodos();
+        model.addAttribute("productos", productos);
+        return "productos/lista";
+    }
+
+    @GetMapping("/nuevo")
+    public String nuevo(Model model) {
+        model.addAttribute("producto", new Producto());
+        model.addAttribute("editar", false);
+        return "productos/formulario";
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Producto> buscarPorId(@PathVariable Integer id) {
-        return productoService.buscarPorCodigo(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public String buscarPorId(@PathVariable Integer id, Model model) {
+        Producto producto = productoService.buscarPorCodigo(id).orElse(null);
+        model.addAttribute("producto", producto);
+        return "productos/detalle";
     }
 
     @PostMapping
-    public ResponseEntity<?> guardar(@RequestBody Producto producto) {
+    public String guardar(@ModelAttribute Producto producto) {
         try {
-            Producto nuevoProducto = productoService.guardar(producto);
-            return new ResponseEntity<>(nuevoProducto, HttpStatus.CREATED);
+            productoService.guardar(producto);
+            return "redirect:/productos";
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return "redirect:/productos/nuevo?error=" + e.getMessage();
         }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> actualizar(@PathVariable Integer id, @RequestBody Producto producto) {
+    @GetMapping("/editar/{id}")
+    public String editar(@PathVariable Integer id, Model model) {
+        Producto producto = productoService.buscarPorCodigo(id).orElse(null);
+        model.addAttribute("producto", producto);
+        model.addAttribute("editar", true);
+        return "productos/formulario";
+    }
+
+    @PostMapping("/actualizar/{id}")
+    public String actualizar(@PathVariable Integer id, @ModelAttribute Producto producto) {
         try {
-            Producto productoActualizado = productoService.actualizar(id, producto);
-            return ResponseEntity.ok(productoActualizado);
+            productoService.actualizar(id, producto);
+            return "redirect:/productos";
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error al actualizar: " + e.getMessage());
+            return "redirect:/productos/editar/" + id + "?error=" + e.getMessage();
         }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> eliminar(@PathVariable Integer id) {
+    @GetMapping("/eliminar/{id}")
+    public String eliminar(@PathVariable Integer id) {
         try {
             productoService.eliminar(id);
-            return ResponseEntity.noContent().build();
+            return "redirect:/productos";
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se pudo eliminar: " + e.getMessage());
+            return "redirect:/productos?error=" + e.getMessage();
         }
     }
 }

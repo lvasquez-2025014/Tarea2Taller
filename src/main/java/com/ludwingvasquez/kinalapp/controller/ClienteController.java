@@ -2,118 +2,164 @@ package com.ludwingvasquez.kinalapp.controller;
 
 import com.ludwingvasquez.kinalapp.entity.Cliente;
 import com.ludwingvasquez.kinalapp.service.IClienteService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import com.ludwingvasquez.kinalapp.service.IVentaService;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
+import jakarta.servlet.http.HttpSession;
 import java.util.List;
-//:
-@RestController
-//@RestController = @Controller + @ResponseBody
+
+@Controller
 @RequestMapping("/clientes")
-//Todas las rutas en este controlador deben empezar con /clientes
 public class ClienteController {
 
-    //inyectamos el SERVICIO y NO el repositorio
-    //el controlador solo debe de tenrer conexion con el Servicio
     private final IClienteService clienteService;
+    private final IVentaService ventaService;
 
-    //como buena practiva la inyeccion de dependencias deber hacerce por el constructor
-    public ClienteController(IClienteService clienteService) {
+    public ClienteController(IClienteService clienteService, IVentaService ventaService) {
         this.clienteService = clienteService;
+        this.ventaService = ventaService;
     }
 
-    //Responde a peticiones GET
-    @GetMapping
-    //ResponseEntity nos permite controlar el codigo HTTP y el cuerpo
-    public ResponseEntity<List<Cliente>> listar(){
+    @ModelAttribute
+    public void agregarUsuarioAlModelo(Model model, HttpSession session) {
+        String nombreUsuario = (String) session.getAttribute("nombreUsuario");
+        String emailUsuario = (String) session.getAttribute("emailUsuario");
+        String rolUsuario = (String) session.getAttribute("rolUsuario");
+        
+        if (nombreUsuario != null) {
+            model.addAttribute("nombreUsuario", nombreUsuario);
+            model.addAttribute("emailUsuario", emailUsuario);
+            model.addAttribute("rolUsuario", rolUsuario != null ? rolUsuario : "Usuario");
+            model.addAttribute("inicialesUsuario", obtenerIniciales(nombreUsuario));
+        }
+    }
+    
+    private String obtenerIniciales(String nombre) {
+        if (nombre == null || nombre.isEmpty()) {
+            return "U";
+        }
+        String[] partes = nombre.split("[.\\s@]+");
+        if (partes.length >= 2) {
+            return (partes[0].substring(0, 1) + partes[partes.length - 1].substring(0, 1)).toUpperCase();
+        }
+        return nombre.substring(0, Math.min(2, nombre.length())).toUpperCase();
+    }
+
+    @GetMapping("/dashboard")
+    public String dashboard(Model model) {
         List<Cliente> clientes = clienteService.listarTodos();
-        //delegamos al servicio
-        return ResponseEntity.ok(clientes);
-        //200 ok con la lista de clientes
+        
+        // Filtrar clientes activos 
+        long clientesActivos = clientes.stream()
+            .filter(c -> c.getEstado() != null && c.getEstado() == 1)
+            .count();
+        
+        // Calcular nuevos clientes del mes 
+        long nuevosClientesMes = clientesActivos;
+        
+        // Estadísticas de ventas reales desde el servicio
+        int totalVentasClientes = ventaService.contarTotalVentas();
+        double ingresosClientes = ventaService.calcularIngresosTotales();
+        
+        model.addAttribute("clientes", clientes);
+        model.addAttribute("totalClientes", clientes.size());
+        model.addAttribute("clientesActivos", (int) clientesActivos);
+        model.addAttribute("nuevosClientesMes", (int) nuevosClientesMes);
+        model.addAttribute("totalVentasClientes", totalVentasClientes);
+        model.addAttribute("ingresosClientes", ingresosClientes);
+        
+        // Últimos 3 clientes agregados 
+        List<Cliente> ultimosClientes = clientes.stream()
+            .filter(c -> c.getNombreCliente() != null && !c.getNombreCliente().isEmpty())
+            .limit(3)
+            .toList();
+        model.addAttribute("ultimosClientes", ultimosClientes);
+        
+        return "clientes/dashboard";
     }
 
-    // {dpi} es una variable de ruta (valor a buscar)
-    @GetMapping("/{dpi}")
-    public ResponseEntity<Cliente> buscarPorDPI(@PathVariable String dpi){
-        // @PathVariable toma el valor de la URL y lo asigna a dpi
-        return clienteService.buscarPorDPI(dpi)
-                // Si Optional tiene valor, devuelve 200 OK con el cliente
-                .map(ResponseEntity::ok)
-                // Si Optional está vacío, devuelve 404 NOT FOUND
-                .orElse(ResponseEntity.notFound().build());
+    @GetMapping
+    public String listar(Model model) {
+        List<Cliente> clientes = clienteService.listarTodos();
+        model.addAttribute("clientes", clientes);
+        return "clientes/lista";
     }
-    // POST crear un nuevo cliente
+
+    @GetMapping("/nuevo")
+    public String nuevo(Model model) {
+        model.addAttribute("cliente", new Cliente());
+        model.addAttribute("editar", false);
+        return "clientes/formulario";
+    }
+
+    @GetMapping("/{dpi}")
+    public String buscarPorDPI(@PathVariable String dpi, Model model) {
+        Cliente cliente = clienteService.buscarPorDPI(dpi).orElse(null);
+        model.addAttribute("cliente", cliente);
+        return "clientes/detalle";
+    }
+
     @PostMapping
-    public ResponseEntity<?> guardar(@RequestBody Cliente cliente){
-        // @RequestBody toma el JSON del cuerpo y lo convierte a un objeto Cliente
-        // <?> significa "tipo genérico" puede ser un Cliente o un String
+    public String guardar(@ModelAttribute Cliente cliente) {
         try {
-            Cliente nuevoCliente = clienteService.guardar(cliente);
-            //Intentamos guardar el cliente pero puede lanzar una excepcion
-            // de IllegalArgumentException
-            return new ResponseEntity<>(nuevoCliente, HttpStatus.CREATED);
-            //201 CREATED(mucho mas especifico que el 2200 para la creacion de un cliente)
-        } catch (IllegalArgumentException e){
-            // Si hay error de validación
-            return ResponseEntity.badRequest().body(e.getMessage());
-            //400 BAD REQUEST con el mensaje de error
+            clienteService.guardar(cliente);
+            return "redirect:/clientes";
+        } catch (IllegalArgumentException e) {
+            return "redirect:/clientes/nuevo?error=" + e.getMessage();
         }
     }
 
-    //DELETE elimina un cliente
-    @DeleteMapping("/{dpi}")
-    public ResponseEntity<Void> eliminar(@PathVariable String dpi){
-        //responseEntity<void> no devuelve nada
-        try{
-            if(!clienteService.existePorDPI(dpi)){
-                return ResponseEntity.notFound().build();
-                //404 si=\
-                // 3
-                // no existe
+    @GetMapping("/editar/{dpi}")
+    public String editar(@PathVariable String dpi, Model model) {
+        Cliente cliente = clienteService.buscarPorDPI(dpi).orElse(null);
+        model.addAttribute("cliente", cliente);
+        model.addAttribute("editar", true);
+        return "clientes/formulario";
+    }
+
+    @PostMapping("/actualizar/{dpi}")
+    public String actualizar(@PathVariable String dpi, @ModelAttribute Cliente cliente) {
+        try {
+            if (!clienteService.existePorDPI(dpi)) {
+                return "redirect:/clientes?error=No encontrado";
+            }
+            clienteService.actualizar(dpi, cliente);
+            return "redirect:/clientes";
+        } catch (IllegalArgumentException e) {
+            return "redirect:/clientes/editar/" + dpi + "?error=" + e.getMessage();
+        } catch (RuntimeException e) {
+            return "redirect:/clientes?error=" + e.getMessage();
+        }
+    }
+
+    @GetMapping("/eliminar/{dpi}")
+    public String eliminar(@PathVariable String dpi) {
+        try {
+            if (!clienteService.existePorDPI(dpi)) {
+                return "redirect:/clientes?error=No encontrado";
             }
             clienteService.eliminar(dpi);
-            return ResponseEntity.noContent().build();
-            //204 no content(se ejecuto correctamente y no devuelve cuerpo)
-        }
-        catch (RuntimeException e){
-            return  ResponseEntity.notFound().build();
+            return "redirect:/clientes";
+        } catch (RuntimeException e) {
+            return "redirect:/clientes?error=" + e.getMessage();
         }
     }
-    //Actualizar cliente a traves de DPI
-    @PutMapping("/{dpi}")
-    public ResponseEntity<?> actualizar(@PathVariable String dpi, @RequestBody Cliente cliente){
-        try{
-            if(!clienteService.existePorDPI(dpi)){
-                //verificar si existe antes de poder actualizar
-                //si no existe 404 NOT FOUND
-                return ResponseEntity.notFound().build();
-            }
-            //actualizar el cliente pero esto puede lanzar una excepcion
-            Cliente clienteActualizado = clienteService.actualizar(dpi,cliente);
-            return ResponseEntity.ok(clienteActualizado);
-            //200 ok con el cliente ya actualizado
-        }catch (IllegalArgumentException e){
-            //Error cuando los datos son incorrectos
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }catch (RuntimeException e){
-            //posiblemente cualquier otro como por ejemplo cliente no encontrado, etc.
-            //404 NOT FUOUND
-            return ResponseEntity.notFound().build();
-        }
-    }
-    @GetMapping( "/activos" )
-    public ResponseEntity<List<Cliente>> listarActivos(){
-        List<Cliente> activos = clienteService.listarPorEstado(1);
 
-        return ResponseEntity.ok(activos);
+    @GetMapping("/activos")
+    public String listarActivos(Model model) {
+        List<Cliente> activos = clienteService.listarPorEstado(1);
+        model.addAttribute("clientes", activos);
+        model.addAttribute("filtro", "Activos");
+        return "clientes/lista";
     }
 
     @GetMapping("/inactivos")
-    public ResponseEntity<List<Cliente>>listarInactivos(){
+    public String listarInactivos(Model model) {
         List<Cliente> inactivos = clienteService.listarPorEstado(0);
-
-        return ResponseEntity.ok(inactivos);
+        model.addAttribute("clientes", inactivos);
+        model.addAttribute("filtro", "Inactivos");
+        return "clientes/lista";
     }
 }

@@ -8,7 +8,7 @@
 		<version>3.3.5</version>
 		<relativePath/>
 	</parent>
-	<groupId>com.wilsontut</groupId>
+	<groupId>com.ludwingivan</groupId>
 	<artifactId>kinalapp</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>kinalapp</name>
@@ -27,12 +27,17 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.mysql</groupId>
 			<artifactId>mysql-connector-j</artifactId>
 			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 	<build>

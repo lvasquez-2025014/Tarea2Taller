@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KinalApp | Dashboard Productos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy-deep: #060d18;
+      --navy: #0a1628;
+      --navy-mid: #0f2240;
+      --navy-light: #1a3a6b;
+      --gold: #c9a84c;
+      --gold-light: #e8d48b;
+      --gold-dark: #a08030;
+      --gold-glow: rgba(201, 168, 76, 0.4);
+      --flame: #e85d26;
+      --flame-light: #ff8c42;
+      --flame-dark: #c44520;
+      --flame-glow: rgba(232, 93, 38, 0.4);
+      --success: #22c55e;
+      --success-glow: rgba(34, 197, 94, 0.4);
+      --error: #ef4444;
+      --error-glow: rgba(239, 68, 68, 0.3);
+      --warning: #f59e0b;
+      --info: #06b6d4;
+      --purple: #7c3aed;
+      --bg-deep: #060d18;
+      --bg-surface: rgba(15, 34, 64, 0.4);
+      --bg-card: rgba(15, 34, 64, 0.5);
+      --text-primary: #f0e8d8;
+      --text-secondary: #c9b896;
+      --text-muted: #8a7d6b;
+      --text-dim: #5a5245;
+      --radius-xl: 20px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+      --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+      --sidebar-width: 260px;
+      --header-height: 64px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { font-size: 16px; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      min-height: 100vh;
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      overflow-x: hidden;
+    }
+
+    /* ==================== FONDO ==================== */
+    .bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    .bg-gradient {
+      position: absolute; inset: 0;
+      background: 
+        radial-gradient(ellipse 80% 50% at 20% 20%, rgba(26, 58, 107, 0.2) 0%, transparent 50%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(201, 168, 76, 0.06) 0%, transparent 50%);
+      animation: bgShift 25s ease-in-out infinite alternate;
+    }
+    @keyframes bgShift { 0% { transform: scale(1); } 100% { transform: scale(1.05); } }
+    .noise {
+      position: absolute; inset: 0; opacity: 0.02;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 256px;
+    }
+    .grid-bg {
+      position: absolute; inset: 0;
+      background-image: 
+        linear-gradient(rgba(201, 168, 76, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201, 168, 76, 0.02) 1px, transparent 1px);
+      background-size: 80px 80px;
+      mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 10%, transparent 70%);
+      -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 10%, transparent 70%);
+    }
+    .orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.4; animation: orbDrift 25s ease-in-out infinite alternate; }
+    .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle at 30% 30%, var(--navy-light), transparent 70%); top: -10%; right: -5%; }
+    .orb-2 { width: 400px; height: 400px; background: radial-gradient(circle at 70% 70%, var(--flame-dark), transparent 70%); bottom: -5%; left: -5%; animation-delay: -7s; opacity: 0.25; }
+    .orb-3 { width: 300px; height: 300px; background: radial-gradient(circle, var(--gold-dark), transparent 70%); top: 40%; left: 50%; opacity: 0.15; animation-delay: -12s; animation-duration: 20s; }
+    @keyframes orbDrift { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-20px, 30px) scale(1.05); } }
+
+    /* ==================== LAYOUT ==================== */
+    .dashboard { position: relative; z-index: 1; display: flex; min-height: 100vh; }
+
+    /* ==================== SIDEBAR ==================== */
+    .sidebar {
+      position: fixed; left: 0; top: 0; width: var(--sidebar-width); height: 100vh;
+      background: linear-gradient(180deg, rgba(10, 22, 40, 0.95) 0%, rgba(6, 13, 24, 0.98) 100%);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-right: 1px solid rgba(201, 168, 76, 0.1);
+      display: flex; flex-direction: column; z-index: 100;
+      transition: transform 0.3s var(--ease-smooth);
+    }
+    .sidebar-brand { padding: 20px 24px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(201, 168, 76, 0.08); }
+    .sidebar-logo { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: transparent; flex-shrink: 0; }
+    .sidebar-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .sidebar-title { font-family: 'Cinzel', serif; font-size: 1.2rem; font-weight: 700; letter-spacing: 2px; background: linear-gradient(135deg, var(--gold-light), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .sidebar-version { font-size: 0.65rem; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+    .nav-section { margin-bottom: 24px; }
+    .nav-section-title { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); font-weight: 600; padding: 0 12px; margin-bottom: 8px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--radius-sm); color: var(--text-muted); text-decoration: none; font-size: 0.88rem; font-weight: 500; cursor: pointer; transition: all 0.2s var(--ease-smooth); position: relative; margin-bottom: 2px; }
+    .nav-item:hover { background: rgba(201, 168, 76, 0.08); color: var(--text-secondary); }
+    .nav-item.active { background: linear-gradient(90deg, rgba(201, 168, 76, 0.15) 0%, transparent 100%); color: var(--gold); }
+    .nav-item.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 60%; background: linear-gradient(180deg, var(--gold), var(--flame)); border-radius: 0 2px 2px 0; }
+    .nav-icon { width: 20px; height: 20px; flex-shrink: 0; }
+    .nav-icon svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .nav-badge { margin-left: auto; background: var(--flame); color: white; font-size: 0.65rem; font-weight: 700; padding: 2px 7px; border-radius: 10px; min-width: 20px; text-align: center; }
+    .sidebar-footer { padding: 16px; border-top: 1px solid rgba(201, 168, 76, 0.08); }
+    .user-card { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: var(--radius-sm); background: rgba(201, 168, 76, 0.05); border: 1px solid rgba(201, 168, 76, 0.08); }
+    .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--gold-dark), var(--gold)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: var(--navy-deep); flex-shrink: 0; }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-role { font-size: 0.7rem; color: var(--text-muted); }
+
+    /* ==================== MAIN CONTENT ==================== */
+    .main-content { flex: 1; margin-left: var(--sidebar-width); display: flex; flex-direction: column; }
+    .top-header { position: sticky; top: 0; height: var(--header-height); background: rgba(6, 13, 24, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(201, 168, 76, 0.08); display: flex; align-items: center; justify-content: space-between; padding: 0 28px; z-index: 50; }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .menu-toggle { display: none; background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 8px; }
+    .menu-toggle svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+    .page-title { font-family: 'Cinzel', serif; font-size: 1.2rem; font-weight: 600; letter-spacing: 1px; color: var(--text-primary); }
+    .header-right { display: flex; align-items: center; gap: 8px; }
+    .header-btn { width: 40px; height: 40px; border-radius: var(--radius-sm); background: rgba(201, 168, 76, 0.06); border: 1px solid rgba(201, 168, 76, 0.08); color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s var(--ease-smooth); position: relative; }
+    .header-btn:hover { background: rgba(201, 168, 76, 0.12); color: var(--gold); }
+    .header-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .notif-dot { position: absolute; top: 8px; right: 8px; width: 7px; height: 7px; background: var(--flame); border-radius: 50%; box-shadow: 0 0 6px var(--flame-glow); }
+    .search-box { display: flex; align-items: center; gap: 8px; background: rgba(201, 168, 76, 0.06); border: 1px solid rgba(201, 168, 76, 0.1); border-radius: var(--radius-sm); padding: 8px 14px; margin-right: 8px; transition: all 0.2s var(--ease-smooth); }
+    .search-box:focus-within { border-color: rgba(201, 168, 76, 0.25); background: rgba(201, 168, 76, 0.1); }
+    .search-box svg { width: 16px; height: 16px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .search-box input { background: none; border: none; outline: none; color: var(--text-secondary); font-size: 0.85rem; font-family: inherit; width: 180px; }
+    .search-box input::placeholder { color: var(--text-dim); }
+
+    /* ==================== CONTENT ==================== */
+    .content { flex: 1; padding: 28px; }
+
+    /* ==================== STATS CARDS ==================== */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 28px; }
+    .stat-card {
+      background: var(--bg-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(201, 168, 76, 0.08); border-radius: var(--radius-lg);
+      padding: 20px; position: relative; overflow: hidden; transition: all 0.3s var(--ease-smooth);
+    }
+    .stat-card:hover { transform: translateY(-3px); border-color: rgba(201, 168, 76, 0.15); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); }
+    .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--gold), var(--flame)); opacity: 0; transition: opacity 0.3s; }
+    .stat-card:hover::before { opacity: 1; }
+    .stat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .stat-icon { width: 42px; height: 42px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; }
+    .stat-icon svg { width: 22px; height: 22px; stroke: white; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .stat-icon.gold { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); box-shadow: 0 4px 12px rgba(201, 168, 76, 0.3); }
+    .stat-icon.flame { background: linear-gradient(135deg, var(--flame-dark), var(--flame)); box-shadow: 0 4px 12px var(--flame-glow); }
+    .stat-icon.green { background: linear-gradient(135deg, #16a34a, var(--success)); box-shadow: 0 4px 12px var(--success-glow); }
+    .stat-icon.blue { background: linear-gradient(135deg, #0284c7, var(--info)); box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3); }
+    .stat-icon.warning { background: linear-gradient(135deg, var(--warning), #fbbf24); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); }
+    .stat-trend { font-size: 0.75rem; font-weight: 600; padding: 3px 8px; border-radius: 12px; }
+    .stat-trend.up { color: var(--success); background: rgba(34, 197, 94, 0.1); }
+    .stat-trend.down { color: var(--error); background: rgba(239, 68, 68, 0.1); }
+    .stat-value { font-family: 'Cinzel', serif; font-size: 1.75rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+    .stat-label { font-size: 0.8rem; color: var(--text-muted); }
+    .stat-bar { margin-top: 12px; height: 3px; background: rgba(201, 168, 76, 0.1); border-radius: 2px; overflow: hidden; }
+    .stat-bar-fill { height: 100%; border-radius: 2px; transition: width 1s var(--ease-smooth); }
+    .stat-bar-fill.gold { background: linear-gradient(90deg, var(--gold-dark), var(--gold)); }
+    .stat-bar-fill.flame { background: linear-gradient(90deg, var(--flame-dark), var(--flame)); }
+    .stat-bar-fill.green { background: linear-gradient(90deg, #16a34a, var(--success)); }
+    .stat-bar-fill.blue { background: linear-gradient(90deg, #0284c7, var(--info)); }
+
+    /* ==================== CARDS ==================== */
+    .card { background: var(--bg-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(201, 168, 76, 0.08); border-radius: var(--radius-lg); overflow: hidden; transition: all 0.3s var(--ease-smooth); }
+    .card:hover { border-color: rgba(201, 168, 76, 0.12); }
+    .card-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid rgba(201, 168, 76, 0.06); }
+    .card-title { font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 600; letter-spacing: 0.5px; color: var(--text-primary); }
+    .card-subtitle { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+    .card-actions { display: flex; gap: 6px; }
+    .card-action-btn { padding: 6px 12px; background: rgba(201, 168, 76, 0.08); border: 1px solid rgba(201, 168, 76, 0.1); border-radius: var(--radius-sm); color: var(--text-muted); font-size: 0.75rem; font-family: inherit; cursor: pointer; transition: all 0.2s var(--ease-smooth); }
+    .card-action-btn:hover, .card-action-btn.active { background: rgba(201, 168, 76, 0.15); color: var(--gold); border-color: rgba(201, 168, 76, 0.2); }
+    .card-action-btn.primary { background: var(--gold); color: var(--navy-deep); border-color: var(--gold); font-weight: 600; }
+    .card-body { padding: 20px; }
+
+    /* ==================== DASHBOARD GRID ==================== */
+    .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 28px; }
+    .full-width-section { margin-bottom: 28px; }
+
+    /* ==================== TABLE ==================== */
+    .table-wrapper { overflow-x: auto; }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th { text-align: left; padding: 12px 16px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); font-weight: 600; border-bottom: 1px solid rgba(201, 168, 76, 0.08); white-space: nowrap; }
+    .data-table td { padding: 14px 16px; font-size: 0.85rem; border-bottom: 1px solid rgba(201, 168, 76, 0.04); color: var(--text-secondary); }
+    .data-table tbody tr { transition: background 0.2s; }
+    .data-table tbody tr:hover { background: rgba(201, 168, 76, 0.04); }
+    .status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; }
+    .status-badge.active { background: rgba(34, 197, 94, 0.1); color: var(--success); }
+    .status-badge.inactive { background: rgba(239, 68, 68, 0.1); color: var(--error); }
+    .status-badge.warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+    .status-dot-sm { width: 6px; height: 6px; border-radius: 50%; }
+    .status-badge.active .status-dot-sm { background: var(--success); box-shadow: 0 0 4px var(--success-glow); }
+    .status-badge.inactive .status-dot-sm { background: var(--error); box-shadow: 0 0 4px var(--error-glow); }
+    .status-badge.warning .status-dot-sm { background: var(--warning); box-shadow: 0 0 4px rgba(245, 158, 11, 0.4); }
+    .progress-mini { width: 80px; height: 4px; background: rgba(201, 168, 76, 0.1); border-radius: 2px; overflow: hidden; display: inline-block; vertical-align: middle; margin-right: 8px; }
+    .progress-mini-fill { height: 100%; border-radius: 2px; }
+
+    /* ==================== STOCK ALERTS ==================== */
+    .alert-card { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.15); border-radius: var(--radius-md); margin-bottom: 12px; }
+    .alert-icon { width: 36px; height: 36px; border-radius: var(--radius-sm); background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; }
+    .alert-icon svg { width: 18px; height: 18px; stroke: var(--error); fill: none; stroke-width: 2; }
+    .alert-content { flex: 1; }
+    .alert-title { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
+    .alert-desc { font-size: 0.75rem; color: var(--text-muted); }
+
+    /* ==================== BAR CHART ==================== */
+    .bar-chart { display: flex; align-items: flex-end; gap: 12px; height: 200px; padding-top: 20px; }
+    .bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; }
+    .bar { width: 100%; max-width: 36px; border-radius: 4px 4px 0 0; transition: all 0.5s var(--ease-out-back); position: relative; cursor: pointer; min-height: 4px; }
+    .bar.gold-bar { background: linear-gradient(180deg, var(--gold-light), var(--gold-dark)); box-shadow: 0 0 8px rgba(201, 168, 76, 0.2); }
+    .bar.flame-bar { background: linear-gradient(180deg, var(--flame-light), var(--flame-dark)); box-shadow: 0 0 8px var(--flame-glow); }
+    .bar:hover { transform: scaleY(1.05); transform-origin: bottom; }
+    .bar-label { font-size: 0.68rem; color: var(--text-dim); text-align: center; }
+    .bar-value { font-size: 0.68rem; color: var(--text-secondary); font-weight: 600; }
+
+    /* ==================== QUICK ACTIONS ==================== */
+    .quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .quick-action-btn { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 18px 12px; background: rgba(201, 168, 76, 0.04); border: 1px solid rgba(201, 168, 76, 0.08); border-radius: var(--radius-md); cursor: pointer; transition: all 0.25s var(--ease-smooth); color: var(--text-secondary); font-family: inherit; }
+    .quick-action-btn:hover { background: rgba(201, 168, 76, 0.1); border-color: rgba(201, 168, 76, 0.15); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
+    .quick-action-icon { width: 40px; height: 40px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; }
+    .quick-action-icon svg { width: 20px; height: 20px; stroke: white; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .quick-action-label { font-size: 0.78rem; font-weight: 500; text-align: center; }
+
+    /* ==================== PRICE FORMAT ==================== */
+    .price { font-family: 'Cinzel', serif; font-weight: 600; color: var(--gold); }
+    .stock-low { color: var(--error); font-weight: 600; }
+    .stock-medium { color: var(--warning); font-weight: 600; }
+    .stock-good { color: var(--success); font-weight: 600; }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .dashboard-grid { grid-template-columns: 1fr; } }
+    /* Mobile Menu Toggle - CSS Only */
+    #sidebar-toggle { display: none; }
+    .menu-btn {
+      display: none; width: 40px; height: 40px; align-items: center; justify-content: center;
+      background: rgba(201, 168, 76, 0.1); border: 1px solid rgba(201, 168, 76, 0.2);
+      border-radius: 8px; cursor: pointer; color: var(--gold);
+    }
+    .menu-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .close-sidebar {
+      display: none; position: absolute; top: 16px; right: 16px;
+      width: 32px; height: 32px; align-items: center; justify-content: center;
+      background: rgba(201, 168, 76, 0.1); border: 1px solid rgba(201, 168, 76, 0.2);
+      border-radius: 8px; color: var(--gold); cursor: pointer; z-index: 101;
+    }
+    .close-sidebar svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+    #sidebar-toggle:checked ~ .sidebar-overlay { display: block; opacity: 1; pointer-events: auto; }
+    #sidebar-toggle:checked ~ .dashboard .sidebar { transform: translateX(0); }
+    
+    @media (max-width: 768px) { 
+      .menu-btn { display: flex !important; }
+      .close-sidebar { display: flex; }
+      .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+      .main-content { margin-left: 0; }
+      .menu-toggle { display: none !important; }
+      .stats-grid { grid-template-columns: 1fr; } 
+      .content { padding: 20px 16px; } 
+      .header-right { display: none; } 
+    }
+
+    /* ==================== ANIMATIONS ==================== */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .stat-card:nth-child(1) { animation: fadeInUp 0.5s var(--ease-smooth) 0.1s both; }
+    .stat-card:nth-child(2) { animation: fadeInUp 0.5s var(--ease-smooth) 0.2s both; }
+    .stat-card:nth-child(3) { animation: fadeInUp 0.5s var(--ease-smooth) 0.3s both; }
+    .stat-card:nth-child(4) { animation: fadeInUp 0.5s var(--ease-smooth) 0.4s both; }
+  </style>
+</head>
+<body>
+  <input type="checkbox" id="sidebar-toggle">
+  <label for="sidebar-toggle" class="sidebar-overlay"></label>
+  
+  <!-- Background -->
+  <div class="bg-layer">
+    <div class="bg-gradient"></div>
+    <div class="noise"></div>
+    <div class="grid-bg"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <div class="dashboard">
+    <!-- ==================== SIDEBAR ==================== -->
+    <aside class="sidebar">
+      <label for="sidebar-toggle" class="close-sidebar" title="Cerrar menú">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </label>
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">
+          <img th:src="@{/img/logo.png}" alt="KINAL APP Logo" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+        <div>
+          <div class="sidebar-title">KINAL</div>
+          <div class="sidebar-version">Panel de Productos</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Principal</div>
+          <a th:href="@{/dashboard}" class="nav-item">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            Dashboard
+          </a>
+          <a th:href="@{/productos/dashboard}" class="nav-item active">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span>
+            Productos
+          </a>
+          <a th:href="@{/ventas/dashboard}" class="nav-item">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></span>
+            Ventas
+          </a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Gestión</div>
+          <a th:href="@{/clientes/dashboard}" class="nav-item">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>
+            Clientes
+          </a>
+          <a th:href="@{/usuarios/dashboard}" class="nav-item">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+            Usuarios
+          </a>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-card">
+          <div class="user-avatar" th:text="${inicialesUsuario?:'U'}">U</div>
+          <div class="user-info">
+            <div class="user-name" th:text="${nombreUsuario?:'Usuario'}">Usuario</div>
+            <div class="user-role" th:text="${rolUsuario?:'User'}">User</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==================== MAIN ==================== -->
+    <main class="main-content">
+      <header class="top-header">
+        <div class="header-left">
+          <label for="sidebar-toggle" class="menu-btn" title="Menú">
+            <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </label>
+          <div>
+            <span class="page-title">Gestión de Productos</span>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" placeholder="Buscar producto...">
+          </div>
+          <a th:href="@{/productos/nuevo}" class="header-btn" style="text-decoration:none;" title="Nuevo Producto">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </a>
+          <button class="header-btn">
+            <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            <span class="notif-dot"></span>
+          </button>
+        </div>
+      </header>
+
+      <div class="content">
+        <h2 style="font-family:'Cinzel',serif;font-size:1.6rem;font-weight:700;color:var(--text-primary);margin-bottom:6px;letter-spacing:1px;">Inventario</h2>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:24px;">Productos / Gestión de Inventario</p>
+
+        <!-- Alertas de Stock Bajo -->
+        <div th:if="${productosBajoStock != null && !productosBajoStock.isEmpty()}" class="alert-card">
+          <div class="alert-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+          <div class="alert-content">
+            <div class="alert-title">Alerta de Stock Bajo</div>
+            <div class="alert-desc"><span th:text="${productosBajoStock.size()}">3</span> productos tienen stock inferior al mínimo recomendado</div>
+          </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-icon gold"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
+              <span class="stat-trend up" th:if="${nuevosProductosMes > 0}">▲ <span th:text="${nuevosProductosMes}">5</span></span>
+            </div>
+            <div class="stat-value" th:text="${totalProductos}">156</div>
+            <div class="stat-label">Total Productos</div>
+            <div class="stat-bar"><div class="stat-bar-fill gold" style="width:78%"></div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-icon flame"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+              <span class="stat-trend down" th:if="${productosBajoStock != null && !productosBajoStock.isEmpty()}">⚠ <span th:text="${productosBajoStock.size()}">8</span></span>
+            </div>
+            <div class="stat-value" th:text="${productosBajoStock != null ? productosBajoStock.size() : 0}">8</div>
+            <div class="stat-label">Stock Bajo</div>
+            <div class="stat-bar"><div class="stat-bar-fill flame" style="width:35%"></div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-icon green"><svg viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+            </div>
+            <div class="stat-value" th:text="'Q' + ${#numbers.formatDecimal(valorInventario, 0, 2)}">Q45,230</div>
+            <div class="stat-label">Valor del Inventario</div>
+            <div class="stat-bar"><div class="stat-bar-fill green" style="width:65%"></div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-icon blue"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+            </div>
+            <div class="stat-value" th:text="${productosActivos}">142</div>
+            <div class="stat-label">Productos Activos</div>
+            <div class="stat-bar"><div class="stat-bar-fill blue" style="width:91%"></div></div>
+          </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="dashboard-grid">
+          <!-- Lista de Productos -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Catálogo de Productos</div>
+                <div class="card-subtitle" th:text="${totalProductos} + ' productos registrados'">156 productos registrados</div>
+              </div>
+              <div class="card-actions">
+                <button class="card-action-btn">Filtrar</button>
+                <button class="card-action-btn">Exportar</button>
+                <a th:href="@{/productos/nuevo}" class="card-action-btn primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Nuevo
+                </a>
+              </div>
+            </div>
+            <div class="card-body" style="padding:0;">
+              <div class="table-wrapper">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Código</th>
+                      <th>Producto</th>
+                      <th>Precio</th>
+                      <th>Stock</th>
+                      <th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr th:each="producto : ${productos}" th:if="${productoStat.index < 8}">
+                      <td th:text="'#' + ${producto.codigo_producto}">#001</td>
+                      <td th:text="${producto.nombre_producto}">Producto Ejemplo</td>
+                      <td class="price" th:text="'Q' + ${#numbers.formatDecimal(producto.precio, 0, 2)}">Q150.00</td>
+                      <td>
+                        <div class="progress-mini">
+                          <div class="progress-mini-fill" th:class="${producto.stock < 10 ? 'stock-low' : (producto.stock < 30 ? 'stock-medium' : 'stock-good')}" th:style="'width:' + ${producto.stock > 100 ? 100 : producto.stock} + '%'"></div>
+                        </div>
+                        <span th:class="${producto.stock < 10 ? 'stock-low' : (producto.stock < 30 ? 'stock-medium' : 'stock-good')}" th:text="${producto.stock}">25</span> unidades
+                      </td>
+                      <td>
+                        <span class="status-badge" th:class="${producto.estado == 1 ? 'status-badge active' : 'status-badge inactive'}">
+                          <span class="status-dot-sm"></span>
+                          <span th:text="${producto.estado == 1 ? 'Activo' : 'Inactivo'}">Activo</span>
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Productos con Stock Bajo -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Stock Crítico</div>
+                <div class="card-subtitle">Productos por reponer</div>
+              </div>
+            </div>
+            <div class="card-body" style="padding:0;">
+              <div class="table-wrapper">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Producto</th>
+                      <th>Stock</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr th:each="producto : ${productosBajoStock}" th:if="${productoStat.index < 6}">
+                      <td th:text="${producto.nombre_producto}">Producto A</td>
+                      <td><span class="stock-low" th:text="${producto.stock} + ' unidades'">5 unidades</span></td>
+                    </tr>
+                    <tr th:if="${productosBajoStock == null || productosBajoStock.isEmpty()}">
+                      <td colspan="2" style="text-align:center;color:var(--text-muted);">No hay productos con stock bajo</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Productos Más Vendidos -->
+        <div class="full-width-section">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Productos Más Vendidos</div>
+                <div class="card-subtitle">Top 7 productos por volumen de ventas</div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="bar-chart">
+                <div class="bar-group">
+                  <div class="bar-value">120</div>
+                  <div class="bar gold-bar" style="height:85%"></div>
+                  <div class="bar-label">Prod 1</div>
+                </div>
+                <div class="bar-group">
+                  <div class="bar-value">98</div>
+                  <div class="bar flame-bar" style="height:70%"></div>
+                  <div class="bar-label">Prod 2</div>
+                </div>
+                <div class="bar-group">
+                  <div class="bar-value">85</div>
+                  <div class="bar gold-bar" style="height:60%"></div>
+                  <div class="bar-label">Prod 3</div>
+                </div>
+                <div class="bar-group">
+                  <div class="bar-value">72</div>
+                  <div class="bar flame-bar" style="height:51%"></div>
+                  <div class="bar-label">Prod 4</div>
+                </div>
+                <div class="bar-group">
+                  <div class="bar-value">65</div>
+                  <div class="bar gold-bar" style="height:46%"></div>
+                  <div class="bar-label">Prod 5</div>
+                </div>
+                <div class="bar-group">
+                  <div class="bar-value">58</div>
+                  <div class="bar flame-bar" style="height:41%"></div>
+                  <div class="bar-label">Prod 6</div>
+                </div>
+                <div class="bar-group">
+                  <div class="bar-value">45</div>
+                  <div class="bar gold-bar" style="height:32%"></div>
+                  <div class="bar-label">Prod 7</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Acciones Rápidas</div>
+              <div class="card-subtitle">Gestión rápida del inventario</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="quick-actions">
+              <a th:href="@{/productos/nuevo}" class="quick-action-btn" style="text-decoration:none;">
+                <div class="quick-action-icon" style="background:linear-gradient(135deg,var(--gold-dark),var(--gold));">
+                  <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </div>
+                <span class="quick-action-label">Nuevo Producto</span>
+              </a>
+              <a th:href="@{/productos}" class="quick-action-btn" style="text-decoration:none;">
+                <div class="quick-action-icon" style="background:linear-gradient(135deg,var(--flame-dark),var(--flame));">
+                  <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
+                <span class="quick-action-label">Lista de Productos</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+</body>
+</html>

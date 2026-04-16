@@ -3,7 +3,7 @@ package com.ludwingvasquez.kinalapp.service;
 import com.ludwingvasquez.kinalapp.entity.Usuario;
 import java.util.List;
 import java.util.Optional;
-//
+
 public interface IUsuarioService {
 
     List<Usuario> listarTodos();
@@ -17,4 +17,6 @@ public interface IUsuarioService {
     void eliminar(Long codigoUsuario);
 
     boolean existePorCodigo(Long codigoUsuario);
+
+    Optional<Usuario> buscarPorUsername(String username);
 }
