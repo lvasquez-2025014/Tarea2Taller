@@ -1,7 +1,7 @@
 package com.ludwingvasquez.kinalapp.entity;
 
 import jakarta.persistence.*;
-//.
+
 @Entity
 @Table(name = "clientes")
 public class Cliente {
@@ -21,15 +21,19 @@ public class Cliente {
     @Column
     private Integer estado;
 
+    @Column(name = "foto_url")
+    private String fotoUrl;
+
     public Cliente() {
     }
 
-    public Cliente(String DPICliente, String nombreCliente, String apellidoCliente, String direccion, Integer estado) {
+    public Cliente(String DPICliente, String nombreCliente, String apellidoCliente, String direccion, Integer estado, String fotoUrl) {
         this.DPICliente = DPICliente;
         this.nombreCliente = nombreCliente;
         this.apellidoCliente = apellidoCliente;
         this.direccion = direccion;
         this.estado = estado;
+        this.fotoUrl = fotoUrl;
     }
 
     public Integer getEstado() {
@@ -70,5 +74,13 @@ public class Cliente {
 
     public void setDPICliente(String DPICliente) {
         this.DPICliente = DPICliente;
+    }
+
+    public String getFotoUrl() {
+        return fotoUrl;
+    }
+
+    public void setFotoUrl(String fotoUrl) {
+        this.fotoUrl = fotoUrl;
     }
 }
