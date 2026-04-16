@@ -75,8 +75,8 @@ public class LoginController {
         }
         
         // Validaciones
-        if (password.length() < 3) {
-            model.addAttribute("error", "La contraseña debe tener al menos 3 caracteres");
+        if (password.length() < 8) {
+            model.addAttribute("error", "La contraseña debe tener al menos 8 caracteres");
             return "registro";
         }
         

@@ -79,8 +79,8 @@ public class UsuarioService implements IUsuarioService {
                 .orElseThrow(() -> new IllegalArgumentException("El nombre de usuario es obligatorio"));
 
         Optional.ofNullable(usuario.getPassword())
-                .filter(pass -> pass.trim().length() >= 3)
-                .orElseThrow(() -> new IllegalArgumentException("La contraseña debe tener al menos 3 caracteres"));
+                .filter(pass -> pass.trim().length() >= 8)
+                .orElseThrow(() -> new IllegalArgumentException("La contraseña debe tener al menos 8 caracteres"));
 
         Optional.ofNullable(usuario.getEmail())
                 .filter(email -> email.contains("@") && email.contains("."))
