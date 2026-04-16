@@ -2,62 +2,112 @@ package com.ludwingvasquez.kinalapp.controller;
 
 import com.ludwingvasquez.kinalapp.entity.Usuario;
 import com.ludwingvasquez.kinalapp.service.IUsuarioService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpSession;
 import java.util.List;
-//
-@RestController
+
+@Controller
 @RequestMapping("/usuarios")
 public class UsuarioController {
 
     private final IUsuarioService usuarioService;
 
-    public UsuarioController(IUsuarioService usuarioService){
+    public UsuarioController(IUsuarioService usuarioService) {
         this.usuarioService = usuarioService;
     }
 
-    @GetMapping
-    public ResponseEntity<List<Usuario>> listar(){
+    @ModelAttribute
+    public void agregarUsuarioAlModelo(Model model, HttpSession session) {
+        String nombreUsuario = (String) session.getAttribute("nombreUsuario");
+        String emailUsuario = (String) session.getAttribute("emailUsuario");
+        String rolUsuario = (String) session.getAttribute("rolUsuario");
+        
+        if (nombreUsuario != null) {
+            model.addAttribute("nombreUsuario", nombreUsuario);
+            model.addAttribute("emailUsuario", emailUsuario);
+            model.addAttribute("rolUsuario", rolUsuario != null ? rolUsuario : "Usuario");
+            model.addAttribute("inicialesUsuario", obtenerIniciales(nombreUsuario));
+        }
+    }
+    
+    private String obtenerIniciales(String nombre) {
+        if (nombre == null || nombre.isEmpty()) {
+            return "U";
+        }
+        String[] partes = nombre.split("[.\\s@]+");
+        if (partes.length >= 2) {
+            return (partes[0].substring(0, 1) + partes[partes.length - 1].substring(0, 1)).toUpperCase();
+        }
+        return nombre.substring(0, Math.min(2, nombre.length())).toUpperCase();
+    }
+
+    @GetMapping("/dashboard")
+    public String dashboard(Model model) {
         List<Usuario> usuarios = usuarioService.listarTodos();
-        return ResponseEntity.ok(usuarios);
+        model.addAttribute("usuarios", usuarios);
+        model.addAttribute("totalUsuarios", usuarios.size());
+        return "usuarios/dashboard";
+    }
+
+    @GetMapping
+    public String listar(Model model) {
+        List<Usuario> usuarios = usuarioService.listarTodos();
+        model.addAttribute("usuarios", usuarios);
+        return "usuarios/lista";
+    }
+
+    @GetMapping("/nuevo")
+    public String nuevo(Model model) {
+        model.addAttribute("usuario", new Usuario());
+        model.addAttribute("editar", false);
+        return "usuarios/formulario";
     }
 
     @GetMapping("/{codigo_usuario}")
-    public ResponseEntity<Usuario> buscarPorId(@PathVariable Long codigo_usuario){
-        return usuarioService.buscarPorId(codigo_usuario)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public String buscarPorId(@PathVariable Long codigo_usuario, Model model) {
+        Usuario usuario = usuarioService.buscarPorId(codigo_usuario).orElse(null);
+        model.addAttribute("usuario", usuario);
+        return "usuarios/detalle";
     }
 
     @PostMapping
-    public ResponseEntity<?> guardar(@RequestBody Usuario usuario){
+    public String guardar(@ModelAttribute Usuario usuario) {
         try {
-            Usuario nuevoUsuario = usuarioService.guardar(usuario);
-            return new ResponseEntity<>(nuevoUsuario, HttpStatus.CREATED);
-        } catch(IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            usuarioService.guardar(usuario);
+            return "redirect:/usuarios";
+        } catch (IllegalArgumentException e) {
+            return "redirect:/usuarios/nuevo?error=" + e.getMessage();
         }
     }
 
-    @PutMapping("/{codigo_usuario}")
-    public ResponseEntity<?> actualizar(@PathVariable Long codigo_usuario, @RequestBody Usuario usuario){
+    @GetMapping("/editar/{codigo_usuario}")
+    public String editar(@PathVariable Long codigo_usuario, Model model) {
+        Usuario usuario = usuarioService.buscarPorId(codigo_usuario).orElse(null);
+        model.addAttribute("usuario", usuario);
+        model.addAttribute("editar", true);
+        return "usuarios/formulario";
+    }
+
+    @PostMapping("/actualizar/{codigo_usuario}")
+    public String actualizar(@PathVariable Long codigo_usuario, @ModelAttribute Usuario usuario) {
         try {
-            Usuario usuarioActualizado = usuarioService.actualizar(codigo_usuario, usuario);
-            return ResponseEntity.ok(usuarioActualizado);
+            usuarioService.actualizar(codigo_usuario, usuario);
+            return "redirect:/usuarios";
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return "redirect:/usuarios/editar/" + codigo_usuario + "?error=" + e.getMessage();
         }
     }
 
-    @DeleteMapping("/{codigo_usuario}")
-    public ResponseEntity<?> eliminar(@PathVariable Long codigo_usuario){
+    @GetMapping("/eliminar/{codigo_usuario}")
+    public String eliminar(@PathVariable Long codigo_usuario) {
         try {
             usuarioService.eliminar(codigo_usuario);
-            return ResponseEntity.noContent().build();
+            return "redirect:/usuarios";
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return "redirect:/usuarios?error=" + e.getMessage();
         }
     }
 }
