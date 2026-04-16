@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KINAL APP Dashboard | Panel de Control</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy-deep: #060d18;
+      --navy: #0a1628;
+      --navy-mid: #0f2240;
+      --navy-light: #1a3a6b;
+      --gold: #c9a84c;
+      --gold-light: #e8d48b;
+      --gold-dark: #a08030;
+      --gold-glow: rgba(201, 168, 76, 0.4);
+      --flame: #e85d26;
+      --flame-light: #ff8c42;
+      --flame-dark: #c44520;
+      --flame-glow: rgba(232, 93, 38, 0.4);
+      --success: #22c55e;
+      --success-glow: rgba(34, 197, 94, 0.4);
+      --error: #ef4444;
+      --error-glow: rgba(239, 68, 68, 0.3);
+      --warning: #f59e0b;
+      --info: #06b6d4;
+      --purple: #7c3aed;
+      --bg-deep: #060d18;
+      --bg-surface: rgba(15, 34, 64, 0.4);
+      --bg-card: rgba(15, 34, 64, 0.5);
+      --text-primary: #f0e8d8;
+      --text-secondary: #c9b896;
+      --text-muted: #8a7d6b;
+      --text-dim: #5a5245;
+      --radius-xl: 20px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+      --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+      --sidebar-width: 260px;
+      --header-height: 64px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { font-size: 16px; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      min-height: 100vh;
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      overflow-x: hidden;
+    }
+
+    /* RADIO INPUTS */
+    .view-radio { display: none !important; }
+
+    /* ==================== FONDO ==================== */
+    .bg-layer {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    }
+    .bg-gradient {
+      position: absolute; inset: 0;
+      background: 
+        radial-gradient(ellipse 80% 50% at 20% 20%, rgba(26, 58, 107, 0.2) 0%, transparent 50%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(201, 168, 76, 0.06) 0%, transparent 50%);
+      animation: bgShift 25s ease-in-out infinite alternate;
+    }
+    @keyframes bgShift { 0% { transform: scale(1); } 100% { transform: scale(1.05); } }
+    .noise {
+      position: absolute; inset: 0; opacity: 0.02;
+      background-image: url("image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 256px;
+    }
+    .grid-bg {
+      position: absolute; inset: 0;
+      background-image: 
+        linear-gradient(rgba(201, 168, 76, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201, 168, 76, 0.02) 1px, transparent 1px);
+      background-size: 80px 80px;
+      mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 10%, transparent 70%);
+      -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 10%, transparent 70%);
+    }
+    .orb {
+      position: absolute; border-radius: 50%; filter: blur(120px);
+      opacity: 0.4; animation: orbDrift 25s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle at 30% 30%, var(--navy-light), transparent 70%); top: -10%; right: -5%; }
+    .orb-2 { width: 400px; height: 400px; background: radial-gradient(circle at 70% 70%, var(--flame-dark), transparent 70%); bottom: -5%; left: -5%; animation-delay: -7s; opacity: 0.25; }
+    .orb-3 { width: 300px; height: 300px; background: radial-gradient(circle, var(--gold-dark), transparent 70%); top: 40%; left: 50%; opacity: 0.15; animation-delay: -12s; animation-duration: 20s; }
+    @keyframes orbDrift { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-20px, 30px) scale(1.05); } }
+
+    .particles { position: absolute; inset: 0; overflow: hidden; }
+    .particle {
+      position: absolute; border-radius: 50%; opacity: 0; animation: particleFloat linear infinite;
+    }
+    .particle:nth-child(1) { left: 5%; width: 2px; height: 2px; background: var(--gold-light); animation-duration: 14s; }
+    .particle:nth-child(2) { left: 10%; width: 3px; height: 3px; animation-duration: 11s; animation-delay: -2s; background: var(--flame-light); }
+    .particle:nth-child(3) { left: 15%; width: 2px; height: 2px; animation-duration: 16s; animation-delay: -4s; background: var(--gold); }
+    .particle:nth-child(4) { left: 20%; width: 4px; height: 4px; animation-duration: 13s; animation-delay: -1s; background: var(--flame); }
+    .particle:nth-child(5) { left: 25%; width: 2px; height: 2px; animation-duration: 15s; animation-delay: -5s; background: var(--gold-light); }
+    .particle:nth-child(6) { left: 30%; width: 3px; height: 3px; animation-duration: 12s; animation-delay: -3s; background: var(--flame-light); }
+    .particle:nth-child(7) { left: 35%; width: 2px; height: 2px; animation-duration: 17s; animation-delay: -6s; background: var(--gold); }
+    .particle:nth-child(8) { left: 40%; width: 3px; height: 3px; animation-duration: 10s; animation-delay: -8s; background: var(--flame); }
+    .particle:nth-child(9) { left: 45%; width: 2px; height: 2px; animation-duration: 13s; animation-delay: -2s; background: var(--gold-light); }
+    .particle:nth-child(10) { left: 50%; width: 2px; height: 2px; animation-duration: 18s; animation-delay: -7s; background: var(--flame-light); }
+    .particle:nth-child(11) { left: 55%; width: 3px; height: 3px; animation-duration: 14s; animation-delay: -3s; background: var(--gold); }
+    .particle:nth-child(12) { left: 60%; width: 2px; height: 2px; animation-duration: 16s; animation-delay: -5s; background: var(--flame); }
+    .particle:nth-child(13) { left: 65%; width: 4px; height: 4px; animation-duration: 11s; animation-delay: -1s; background: var(--gold-light); }
+    .particle:nth-child(14) { left: 70%; width: 2px; height: 2px; animation-duration: 19s; animation-delay: -9s; background: var(--flame-light); }
+    .particle:nth-child(15) { left: 75%; width: 3px; height: 3px; animation-duration: 12s; animation-delay: -4s; background: var(--gold); }
+    .particle:nth-child(16) { left: 80%; width: 2px; height: 2px; animation-duration: 15s; animation-delay: -6s; background: var(--flame); }
+    .particle:nth-child(17) { left: 85%; width: 3px; height: 3px; animation-duration: 17s; animation-delay: -2s; background: var(--gold-light); }
+    .particle:nth-child(18) { left: 90%; width: 2px; height: 2px; animation-duration: 13s; animation-delay: -7s; background: var(--flame-light); }
+    .particle:nth-child(19) { left: 95%; width: 2px; height: 2px; animation-duration: 20s; animation-delay: -8s; background: var(--gold); }
+    .particle:nth-child(20) { left: 8%; width: 3px; height: 3px; animation-duration: 14s; animation-delay: -10s; background: var(--flame); }
+    .particle:nth-child(21) { left: 18%; width: 2px; height: 2px; animation-duration: 16s; animation-delay: -11s; background: var(--gold-light); }
+    .particle:nth-child(22) { left: 28%; width: 2px; height: 2px; animation-duration: 12s; animation-delay: -3s; background: var(--flame-light); }
+    .particle:nth-child(23) { left: 38%; width: 4px; height: 4px; animation-duration: 18s; animation-delay: -12s; background: var(--gold); }
+    .particle:nth-child(24) { left: 48%; width: 2px; height: 2px; animation-duration: 14s; animation-delay: -5s; background: var(--flame); }
+    .particle:nth-child(25) { left: 58%; width: 3px; height: 3px; animation-duration: 11s; animation-delay: -6s; background: var(--gold-light); }
+    .particle:nth-child(26) { left: 68%; width: 2px; height: 2px; animation-duration: 19s; animation-delay: -4s; background: var(--flame-light); }
+    .particle:nth-child(27) { left: 78%; width: 3px; height: 3px; animation-duration: 15s; animation-delay: -13s; background: var(--gold); }
+    .particle:nth-child(28) { left: 88%; width: 2px; height: 2px; animation-duration: 13s; animation-delay: -9s; background: var(--flame); }
+    .particle:nth-child(29) { left: 93%; width: 2px; height: 2px; animation-duration: 21s; animation-delay: -14s; background: var(--gold-light); }
+    .particle:nth-child(30) { left: 3%; width: 3px; height: 3px; animation-duration: 16s; animation-delay: -15s; background: var(--flame-light); }
+    @keyframes particleFloat {
+      0% { bottom: -5%; opacity: 0; transform: translateX(0) scale(0.5); }
+      10% { opacity: 0.5; transform: scale(1); }
+      90% { opacity: 0.2; }
+      100% { bottom: 105%; opacity: 0; transform: translateX(-30px) scale(0.3); }
+    }
+
+    /* ==================== LAYOUT ==================== */
+    .dashboard {
+      position: relative; z-index: 1;
+      display: flex; min-height: 100vh;
+    }
+
+    /* ==================== SIDEBAR ==================== */
+    .sidebar {
+      position: fixed; left: 0; top: 0;
+      width: var(--sidebar-width); height: 100vh;
+      background: linear-gradient(180deg, rgba(10, 22, 40, 0.95) 0%, rgba(6, 13, 24, 0.98) 100%);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-right: 1px solid rgba(201, 168, 76, 0.1);
+      display: flex; flex-direction: column; z-index: 100;
+      transition: transform 0.3s var(--ease-smooth);
+    }
+
+    .sidebar-brand {
+      padding: 20px 24px;
+      display: flex; align-items: center; gap: 12px;
+      border-bottom: 1px solid rgba(201, 168, 76, 0.08);
+    }
+
+    .sidebar-logo {
+      width: 42px; height: 42px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 0 2px rgba(201, 168, 76, 0.2), 0 4px 12px rgba(0,0,0,0.3);
+      flex-shrink: 0;
+      overflow: hidden;
+      background: transparent;
+    }
+    .sidebar-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .sidebar-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.2rem; font-weight: 700; letter-spacing: 2px;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .sidebar-version { font-size: 0.65rem; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; }
+
+    .sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+    .nav-section { margin-bottom: 24px; }
+    .nav-section-title {
+      font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px;
+      color: var(--text-dim); font-weight: 600; padding: 0 12px; margin-bottom: 8px;
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px; border-radius: var(--radius-sm);
+      color: var(--text-muted); text-decoration: none;
+      font-size: 0.88rem; font-weight: 500; cursor: pointer;
+      transition: all 0.2s var(--ease-smooth); position: relative; margin-bottom: 2px;
+    }
+    .nav-item:hover { background: rgba(201, 168, 76, 0.08); color: var(--text-secondary); }
+    .nav-icon { width: 20px; height: 20px; flex-shrink: 0; }
+    .nav-icon svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .nav-badge {
+      margin-left: auto; background: var(--flame); color: white;
+      font-size: 0.65rem; font-weight: 700; padding: 2px 7px;
+      border-radius: 10px; min-width: 20px; text-align: center;
+    }
+
+    /* Active state via radio */
+    #view-dashboard:checked ~ .dashboard .sidebar .nav-item[data-target="dashboard"],
+    #view-analiticas:checked ~ .dashboard .sidebar .nav-item[data-target="analiticas"],
+    #view-rendimiento:checked ~ .dashboard .sidebar .nav-item[data-target="rendimiento"],
+    #view-seguridad:checked ~ .dashboard .sidebar .nav-item[data-target="seguridad"],
+    #view-configuracion:checked ~ .dashboard .sidebar .nav-item[data-target="configuracion"] {
+      background: linear-gradient(90deg, rgba(201, 168, 76, 0.15) 0%, transparent 100%);
+      color: var(--gold);
+    }
+    #view-dashboard:checked ~ .dashboard .sidebar .nav-item[data-target="dashboard"]::before,
+    #view-analiticas:checked ~ .dashboard .sidebar .nav-item[data-target="analiticas"]::before,
+    #view-rendimiento:checked ~ .dashboard .sidebar .nav-item[data-target="rendimiento"]::before,
+    #view-seguridad:checked ~ .dashboard .sidebar .nav-item[data-target="seguridad"]::before,
+    #view-configuracion:checked ~ .dashboard .sidebar .nav-item[data-target="configuracion"]::before {
+      content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      width: 3px; height: 60%; background: linear-gradient(180deg, var(--gold), var(--flame));
+      border-radius: 0 2px 2px 0;
+    }
+
+    .sidebar-footer {
+      padding: 16px;
+      border-top: 1px solid rgba(201, 168, 76, 0.08);
+    }
+    .user-card {
+      display: flex; align-items: center; gap: 10px; padding: 10px;
+      border-radius: var(--radius-sm); background: rgba(201, 168, 76, 0.05);
+      border: 1px solid rgba(201, 168, 76, 0.08); cursor: pointer;
+      transition: all 0.2s var(--ease-smooth);
+    }
+    .user-card:hover { background: rgba(201, 168, 76, 0.1); }
+    .user-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.85rem; color: var(--navy-deep); flex-shrink: 0;
+    }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-role { font-size: 0.7rem; color: var(--text-muted); }
+    .logout-btn:hover { background: rgba(232, 93, 38, 0.2) !important; border-color: rgba(232, 93, 38, 0.4) !important; }
+
+    /* ==================== MAIN CONTENT ==================== */
+    .main-content {
+      flex: 1; margin-left: var(--sidebar-width);
+      display: flex; flex-direction: column;
+    }
+
+    /* ==================== HEADER ==================== */
+    .top-header {
+      position: sticky; top: 0; height: var(--header-height);
+      background: rgba(6, 13, 24, 0.8);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(201, 168, 76, 0.08);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px; z-index: 50;
+    }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .menu-toggle {
+      display: none; background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 8px;
+    }
+    .menu-toggle svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+    .page-title {
+      font-family: 'Cinzel', serif; font-size: 1.2rem; font-weight: 600; letter-spacing: 1px; color: var(--text-primary);
+    }
+    .page-breadcrumb { font-size: 0.75rem; color: var(--text-muted); }
+    .header-right { display: flex; align-items: center; gap: 8px; }
+    .header-btn {
+      width: 40px; height: 40px; border-radius: var(--radius-sm);
+      background: rgba(201, 168, 76, 0.06); border: 1px solid rgba(201, 168, 76, 0.08);
+      color: var(--text-muted); cursor: pointer; display: flex;
+      align-items: center; justify-content: center; transition: all 0.2s var(--ease-smooth); position: relative;
+    }
+    .header-btn:hover { background: rgba(201, 168, 76, 0.12); color: var(--gold); }
+    .header-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .notif-dot { position: absolute; top: 8px; right: 8px; width: 7px; height: 7px; background: var(--flame); border-radius: 50%; box-shadow: 0 0 6px var(--flame-glow); }
+    .notif-badge { position: absolute; top: 4px; right: 4px; min-width: 16px; height: 16px; background: var(--flame); border-radius: 8px; font-size: 0.65rem; font-weight: 700; color: white; display: flex; align-items: center; justify-content: center; padding: 0 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+    .search-box {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(201, 168, 76, 0.06); border: 1px solid rgba(201, 168, 76, 0.1);
+      border-radius: var(--radius-sm); padding: 8px 14px; margin-right: 8px;
+      transition: all 0.2s var(--ease-smooth);
+    }
+    .search-box:focus-within { border-color: rgba(201, 168, 76, 0.25); background: rgba(201, 168, 76, 0.1); }
+    .search-box svg { width: 16px; height: 16px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .search-box input { background: none; border: none; outline: none; color: var(--text-secondary); font-size: 0.85rem; font-family: inherit; width: 180px; }
+    .search-box input::placeholder { color: var(--text-dim); }
+
+    /* ==================== CONTENT ==================== */
+    .content { flex: 1; padding: 28px; }
+
+    /* ==================== VIEWS ==================== */
+    .view-panel {
+      display: none;
+      animation: viewFadeIn 0.4s var(--ease-smooth) forwards;
+    }
+    @keyframes viewFadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    #view-dashboard:checked ~ .dashboard .main-content .content .view-dashboard,
+    #view-analiticas:checked ~ .dashboard .main-content .content .view-analiticas,
+    #view-rendimiento:checked ~ .dashboard .main-content .content .view-rendimiento,
+    #view-seguridad:checked ~ .dashboard .main-content .content .view-seguridad,
+    #view-configuracion:checked ~ .dashboard .main-content .content .view-configuracion {
+      display: block;
+    }
+
+    .view-title, .view-breadcrumb { display: none; }
+    .view-dashboard .view-title, .view-dashboard .view-breadcrumb,
+    .view-analiticas .view-title, .view-analiticas .view-breadcrumb,
+    .view-rendimiento .view-title, .view-rendimiento .view-breadcrumb,
+    .view-seguridad .view-title, .view-seguridad .view-breadcrumb,
+    .view-configuracion .view-title, .view-configuracion .view-breadcrumb {
+      display: block;
+    }
+
+    /* ==================== STATS CARDS ==================== */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 28px; }
+    .stat-card {
+      background: var(--bg-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(201, 168, 76, 0.08); border-radius: var(--radius-lg);
+      padding: 20px; position: relative; overflow: hidden;
+      transition: all 0.3s var(--ease-smooth);
+    }
+    .stat-card:hover { transform: translateY(-3px); border-color: rgba(201, 168, 76, 0.15); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); }
+    .stat-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--gold), var(--flame)); opacity: 0; transition: opacity 0.3s;
+    }
+    .stat-card:hover::before { opacity: 1; }
+    .stat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .stat-icon {
+      width: 42px; height: 42px; border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .stat-icon svg { width: 22px; height: 22px; stroke: white; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .stat-icon.gold { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); box-shadow: 0 4px 12px rgba(201, 168, 76, 0.3); }
+    .stat-icon.flame { background: linear-gradient(135deg, var(--flame-dark), var(--flame)); box-shadow: 0 4px 12px var(--flame-glow); }
+    .stat-icon.green { background: linear-gradient(135deg, #16a34a, var(--success)); box-shadow: 0 4px 12px var(--success-glow); }
+    .stat-icon.blue { background: linear-gradient(135deg, #0284c7, var(--info)); box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3); }
+    .stat-icon.purple { background: linear-gradient(135deg, var(--purple), #a78bfa); box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); }
+    .stat-trend { font-size: 0.75rem; font-weight: 600; padding: 3px 8px; border-radius: 12px; }
+    .stat-trend.up { color: var(--success); background: rgba(34, 197, 94, 0.1); }
+    .stat-trend.down { color: var(--error); background: rgba(239, 68, 68, 0.1); }
+    .stat-value { font-family: 'Cinzel', serif; font-size: 1.75rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+    .stat-label { font-size: 0.8rem; color: var(--text-muted); }
+    .stat-bar { margin-top: 12px; height: 3px; background: rgba(201, 168, 76, 0.1); border-radius: 2px; overflow: hidden; }
+    .stat-bar-fill { height: 100%; border-radius: 2px; transition: width 1s var(--ease-smooth); }
+    .stat-bar-fill.gold { background: linear-gradient(90deg, var(--gold-dark), var(--gold)); }
+    .stat-bar-fill.flame { background: linear-gradient(90deg, var(--flame-dark), var(--flame)); }
+    .stat-bar-fill.green { background: linear-gradient(90deg, #16a34a, var(--success)); }
+    .stat-bar-fill.blue { background: linear-gradient(90deg, #0284c7, var(--info)); }
+
+    /* ==================== CARDS ==================== */
+    .card {
+      background: var(--bg-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(201, 168, 76, 0.08); border-radius: var(--radius-lg); overflow: hidden;
+      transition: all 0.3s var(--ease-smooth);
+    }
+    .card:hover { border-color: rgba(201, 168, 76, 0.12); }
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 20px; border-bottom: 1px solid rgba(201, 168, 76, 0.06);
+    }
+    .card-title {
+      font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 600;
+      letter-spacing: 0.5px; color: var(--text-primary);
+    }
+    .card-subtitle { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+    .card-actions { display: flex; gap: 6px; }
+    .card-action-btn {
+      padding: 6px 12px; background: rgba(201, 168, 76, 0.08); border: 1px solid rgba(201, 168, 76, 0.1);
+      border-radius: var(--radius-sm); color: var(--text-muted); font-size: 0.75rem;
+      font-family: inherit; cursor: pointer; transition: all 0.2s var(--ease-smooth);
+    }
+    .card-action-btn:hover, .card-action-btn.active { background: rgba(201, 168, 76, 0.15); color: var(--gold); border-color: rgba(201, 168, 76, 0.2); }
+    .card-body { padding: 20px; }
+
+    /* ==================== DASHBOARD GRID ==================== */
+    .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 28px; }
+    .full-width-section { margin-bottom: 28px; }
+    .bottom-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+    /* ==================== CHART ==================== */
+    .chart-container { height: 280px; position: relative; }
+    .chart-svg { width: 100%; height: 100%; }
+    .chart-grid-line { stroke: rgba(201, 168, 76, 0.06); stroke-width: 1; }
+    .chart-label { fill: var(--text-muted); font-size: 10px; font-family: 'Inter', sans-serif; }
+    .chart-area { fill: url(#chartGradient); opacity: 0.3; }
+    .chart-line { fill: none; stroke: var(--gold); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 2px 4px var(--gold-glow)); }
+    .chart-line-secondary { fill: none; stroke: var(--flame); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 4 4; opacity: 0.6; }
+    .chart-dot { fill: var(--gold); stroke: var(--navy-deep); stroke-width: 2; cursor: pointer; transition: r 0.2s var(--ease-smooth); }
+    .chart-dot:hover { r: 6; }
+
+    /* ==================== BAR CHART ==================== */
+    .bar-chart { display: flex; align-items: flex-end; gap: 12px; height: 200px; padding-top: 20px; }
+    .bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; }
+    .bar { width: 100%; max-width: 36px; border-radius: 4px 4px 0 0; transition: all 0.5s var(--ease-out-back); position: relative; cursor: pointer; min-height: 4px; }
+    .bar.gold-bar { background: linear-gradient(180deg, var(--gold-light), var(--gold-dark)); box-shadow: 0 0 8px rgba(201, 168, 76, 0.2); }
+    .bar.flame-bar { background: linear-gradient(180deg, var(--flame-light), var(--flame-dark)); box-shadow: 0 0 8px var(--flame-glow); }
+    .bar:hover { transform: scaleY(1.05); transform-origin: bottom; }
+    .bar-label { font-size: 0.68rem; color: var(--text-dim); text-align: center; }
+    .bar-value { font-size: 0.68rem; color: var(--text-secondary); font-weight: 600; }
+
+    /* ==================== TABLE ==================== */
+    .table-wrapper { overflow-x: auto; }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th {
+      text-align: left; padding: 12px 16px; font-size: 0.72rem;
+      text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim);
+      font-weight: 600; border-bottom: 1px solid rgba(201, 168, 76, 0.08); white-space: nowrap;
+    }
+    .data-table td { padding: 14px 16px; font-size: 0.85rem; border-bottom: 1px solid rgba(201, 168, 76, 0.04); color: var(--text-secondary); }
+    .data-table tbody tr { transition: background 0.2s; }
+    .data-table tbody tr:hover { background: rgba(201, 168, 76, 0.04); }
+    .table-user { display: flex; align-items: center; gap: 10px; }
+    .table-avatar {
+      width: 32px; height: 32px; border-radius: 50%; display: flex;
+      align-items: center; justify-content: center; font-size: 0.75rem;
+      font-weight: 700; color: var(--navy-deep); flex-shrink: 0;
+    }
+    .table-user-info .name { font-weight: 600; color: var(--text-primary); font-size: 0.85rem; }
+    .table-user-info .email { font-size: 0.75rem; color: var(--text-muted); }
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 600;
+    }
+    .status-badge.active { background: rgba(34, 197, 94, 0.1); color: var(--success); }
+    .status-badge.pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+    .status-badge.inactive { background: rgba(239, 68, 68, 0.1); color: var(--error); }
+    .status-badge.read { background: rgba(6, 182, 212, 0.1); color: var(--info); }
+    .status-dot-sm { width: 6px; height: 6px; border-radius: 50%; }
+    .status-badge.active .status-dot-sm { background: var(--success); box-shadow: 0 0 4px var(--success-glow); }
+    .status-badge.pending .status-dot-sm { background: var(--warning); box-shadow: 0 0 4px rgba(245, 158, 11, 0.4); }
+    .status-badge.inactive .status-dot-sm { background: var(--error); box-shadow: 0 0 4px var(--error-glow); }
+    .status-badge.read .status-dot-sm { background: var(--info); box-shadow: 0 0 4px rgba(6, 182, 212, 0.4); }
+    .progress-mini { width: 80px; height: 4px; background: rgba(201, 168, 76, 0.1); border-radius: 2px; overflow: hidden; display: inline-block; vertical-align: middle; margin-right: 8px; }
+    .progress-mini-fill { height: 100%; border-radius: 2px; }
+
+    /* ==================== ACTIVITY ==================== */
+    .activity-list { display: flex; flex-direction: column; gap: 0; }
+    .activity-item { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid rgba(201, 168, 76, 0.04); position: relative; }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; position: relative; }
+    .activity-dot.gold { background: var(--gold); box-shadow: 0 0 6px var(--gold-glow); }
+    .activity-dot.flame { background: var(--flame); box-shadow: 0 0 6px var(--flame-glow); }
+    .activity-dot.green { background: var(--success); box-shadow: 0 0 6px var(--success-glow); }
+    .activity-dot.blue { background: var(--info); box-shadow: 0 0 6px rgba(6, 182, 212, 0.4); }
+    .activity-item:not(:last-child) .activity-dot::after {
+      content: ''; position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+      width: 1px; height: calc(100% + 20px); background: rgba(201, 168, 76, 0.06);
+    }
+    .activity-content { flex: 1; }
+    .activity-text { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; }
+    .activity-text strong { color: var(--text-primary); font-weight: 600; }
+    .activity-time { font-size: 0.7rem; color: var(--text-dim); margin-top: 4px; }
+
+    /* ==================== QUICK ACTIONS ==================== */
+    .quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .quick-action-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      padding: 18px 12px; background: rgba(201, 168, 76, 0.04);
+      border: 1px solid rgba(201, 168, 76, 0.08); border-radius: var(--radius-md);
+      cursor: pointer; transition: all 0.25s var(--ease-smooth);
+      color: var(--text-secondary); font-family: inherit;
+    }
+    .quick-action-btn:hover { background: rgba(201, 168, 76, 0.1); border-color: rgba(201, 168, 76, 0.15); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
+    .quick-action-icon { width: 40px; height: 40px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; }
+    .quick-action-icon svg { width: 20px; height: 20px; stroke: white; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .quick-action-label { font-size: 0.78rem; font-weight: 500; text-align: center; }
+
+    /* ==================== DONUT ==================== */
+    .donut-container { display: flex; align-items: center; justify-content: center; gap: 24px; padding: 10px 0; }
+    .donut-chart { position: relative; width: 140px; height: 140px; }
+    .donut-chart svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .donut-track { fill: none; stroke: rgba(201, 168, 76, 0.08); stroke-width: 10; }
+    .donut-segment { fill: none; stroke-width: 10; stroke-linecap: round; transition: stroke-dasharray 1s var(--ease-smooth); }
+    .donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+    .donut-value { font-family: 'Cinzel', serif; font-size: 1.4rem; font-weight: 700; color: var(--text-primary); }
+    .donut-label-text { font-size: 0.68rem; color: var(--text-muted); }
+    .donut-legend { display: flex; flex-direction: column; gap: 10px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--text-secondary); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+    .legend-value { margin-left: auto; font-weight: 600; color: var(--text-primary); }
+
+    /* ==================== ANALYTICS ==================== */
+    .analytics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 28px; }
+    .analytics-card {
+      background: var(--bg-card); border: 1px solid rgba(201, 168, 76, 0.08);
+      border-radius: var(--radius-lg); padding: 24px; transition: all 0.3s;
+    }
+    .analytics-card:hover { border-color: rgba(201, 168, 76, 0.15); transform: translateY(-2px); }
+    .ac-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .ac-title { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
+    .ac-value { font-family: 'Cinzel', serif; font-size: 2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+    .ac-change { font-size: 0.78rem; font-weight: 600; }
+    .ac-change.up { color: var(--success); }
+    .ac-change.down { color: var(--error); }
+    .mini-chart { height: 60px; display: flex; align-items: flex-end; gap: 3px; margin-top: 12px; }
+    .mini-bar { flex: 1; border-radius: 2px 2px 0 0; transition: height 0.5s var(--ease-smooth); min-height: 2px; }
+    .mini-bar.gold { background: var(--gold); opacity: 0.7; }
+    .mini-bar.flame { background: var(--flame); opacity: 0.7; }
+    .mini-bar.green { background: var(--success); opacity: 0.7; }
+
+    /* ==================== PERFORMANCE ==================== */
+    .perf-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 28px; }
+    .perf-card {
+      background: var(--bg-card); border: 1px solid rgba(201, 168, 76, 0.08);
+      border-radius: var(--radius-lg); padding: 24px; transition: all 0.3s;
+    }
+    .perf-card:hover { border-color: rgba(201, 168, 76, 0.15); }
+    .perf-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .perf-title { font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 600; color: var(--text-primary); }
+    .perf-value { font-family: 'Cinzel', serif; font-size: 2.2rem; font-weight: 700; }
+    .perf-subtitle { font-size: 0.78rem; color: var(--text-muted); }
+    .perf-meter {
+      width: 100%; height: 8px; background: rgba(201, 168, 76, 0.1);
+      border-radius: 4px; overflow: hidden; margin: 16px 0;
+    }
+    .perf-meter-fill { height: 100%; border-radius: 4px; transition: width 1.5s var(--ease-smooth); }
+    .perf-meter-fill.gold { background: linear-gradient(90deg, var(--gold-dark), var(--gold-light)); }
+    .perf-meter-fill.green { background: linear-gradient(90deg, #16a34a, var(--success)); }
+    .perf-meter-fill.flame { background: linear-gradient(90deg, var(--flame-dark), var(--flame-light)); }
+    .perf-meter-fill.blue { background: linear-gradient(90deg, #0284c7, var(--info)); }
+    .perf-details { display: flex; justify-content: space-between; }
+    .perf-detail { text-align: center; }
+    .perf-detail-label { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px; }
+    .perf-detail-value { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
+    .uptime-bars { display: flex; gap: 2px; flex-wrap: wrap; }
+    .uptime-bar {
+      width: calc(100%/30 - 2px); height: 40px; border-radius: 3px;
+      transition: all 0.3s;
+    }
+    .uptime-bar:hover { transform: scaleY(1.1); }
+    .uptime-bar.perfect { background: var(--success); opacity: 0.85; }
+    .uptime-bar.minor { background: var(--warning); opacity: 0.75; }
+
+    /* ==================== SECURITY ==================== */
+    .security-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 28px; }
+    .security-card {
+      background: var(--bg-card); border: 1px solid rgba(201, 168, 76, 0.08);
+      border-radius: var(--radius-lg); padding: 24px; transition: all 0.3s var(--ease-smooth);
+    }
+    .security-card:hover { border-color: rgba(201, 168, 76, 0.15); transform: translateY(-2px); }
+    .security-card .sc-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+    .sc-icon {
+      width: 44px; height: 44px; border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .sc-icon svg { width: 22px; height: 22px; stroke: white; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .sc-icon.success { background: linear-gradient(135deg, #16a34a, var(--success)); box-shadow: 0 4px 12px var(--success-glow); }
+    .sc-icon.warning { background: linear-gradient(135deg, var(--warning), #fbbf24); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); }
+    .sc-icon.danger { background: linear-gradient(135deg, var(--error), #f87171); box-shadow: 0 4px 12px var(--error-glow); }
+    .sc-icon.gold { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); box-shadow: 0 4px 12px var(--gold-glow); }
+    .sc-title { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); }
+    .sc-subtitle { font-size: 0.75rem; color: var(--text-muted); }
+    .sc-body { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px; }
+    .sc-action {
+      display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;
+      background: rgba(201, 168, 76, 0.08); border: 1px solid rgba(201, 168, 76, 0.15);
+      border-radius: var(--radius-sm); color: var(--gold); font-size: 0.8rem;
+      font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit;
+    }
+    .sc-action:hover { background: rgba(201, 168, 76, 0.15); }
+    .sc-action svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ==================== SETTINGS ==================== */
+    .settings-section { margin-bottom: 28px; }
+    .settings-section-title {
+      font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: 600;
+      color: var(--text-primary); margin-bottom: 16px; padding-bottom: 8px;
+      border-bottom: 1px solid rgba(201, 168, 76, 0.1);
+    }
+    .setting-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 0; border-bottom: 1px solid rgba(201, 168, 76, 0.04);
+    }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-info { flex: 1; }
+    .setting-label { font-size: 0.9rem; font-weight: 500; color: var(--text-primary); margin-bottom: 2px; }
+    .setting-desc { font-size: 0.78rem; color: var(--text-muted); }
+    .toggle-switch {
+      width: 48px; height: 26px; background: rgba(201, 168, 76, 0.15);
+      border-radius: 13px; position: relative; cursor: pointer;
+      transition: background 0.3s;
+    }
+    .toggle-switch.active { background: var(--gold); }
+    .toggle-switch::after {
+      content: ''; position: absolute; top: 3px; left: 3px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: white; transition: transform 0.3s var(--ease-out-back);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .toggle-switch.active::after { transform: translateX(22px); }
+
+    /* ==================== MOBILE OVERLAY ==================== */
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 99; }
+
+    /* ==================== ANIMATIONS ==================== */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .stat-card:nth-child(1) { animation: fadeInUp 0.5s var(--ease-smooth) 0.1s both; }
+    .stat-card:nth-child(2) { animation: fadeInUp 0.5s var(--ease-smooth) 0.2s both; }
+    .stat-card:nth-child(3) { animation: fadeInUp 0.5s var(--ease-smooth) 0.3s both; }
+    .stat-card:nth-child(4) { animation: fadeInUp 0.5s var(--ease-smooth) 0.4s both; }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 1200px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .dashboard-grid { grid-template-columns: 1fr; }
+      .bottom-grid { grid-template-columns: 1fr 1fr; }
+      .finance-cards { grid-template-columns: repeat(2, 1fr); }
+      .doc-grid { grid-template-columns: repeat(3, 1fr); }
+      .analytics-grid { grid-template-columns: repeat(2, 1fr); }
+      .security-grid { grid-template-columns: 1fr; }
+      .perf-grid { grid-template-columns: 1fr; }
+    }
+    /* Mobile Menu Toggle - CSS Only */
+    #sidebar-toggle { display: none; }
+    .menu-btn {
+      display: none; width: 40px; height: 40px; align-items: center; justify-content: center;
+      background: rgba(201, 168, 76, 0.1); border: 1px solid rgba(201, 168, 76, 0.2);
+      border-radius: 8px; cursor: pointer; color: var(--gold);
+    }
+    .menu-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .close-sidebar {
+      display: none; position: absolute; top: 16px; right: 16px;
+      width: 32px; height: 32px; align-items: center; justify-content: center;
+      background: rgba(201, 168, 76, 0.1); border: 1px solid rgba(201, 168, 76, 0.2);
+      border-radius: 8px; color: var(--gold); cursor: pointer; z-index: 101;
+    }
+    .close-sidebar svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+    #sidebar-toggle:checked ~ .sidebar-overlay { display: block; opacity: 1; pointer-events: auto; }
+    #sidebar-toggle:checked ~ .sidebar { transform: translateX(0); }
+    
+    @media (max-width: 768px) {
+      .menu-btn { display: flex; }
+      .close-sidebar { display: flex; }
+      .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+      .main-content { margin-left: 0; }
+      .menu-toggle { display: none !important; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .bottom-grid { grid-template-columns: 1fr; }
+      .content { padding: 20px 16px; }
+      .search-box { display: none; }
+      .page-title { font-size: 1rem; }
+      .donut-container { flex-direction: column; }
+      .finance-cards { grid-template-columns: 1fr; }
+      .doc-grid { grid-template-columns: repeat(2, 1fr); }
+      .analytics-grid { grid-template-columns: 1fr; }
+      .profile-header { flex-direction: column; text-align: center; }
+      .profile-badges { justify-content: center; }
+    }
+    @media (max-width: 480px) {
+      .quick-actions { grid-template-columns: 1fr; }
+      .doc-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ==================== TOAST NOTIFICATIONS ==================== */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      border-radius: 12px;
+      background: rgba(10, 22, 40, 0.98);
+      border: 1px solid rgba(201, 168, 76, 0.3);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(20px);
+      min-width: 320px;
+      max-width: 420px;
+      transform: translateX(120%);
+      opacity: 0;
+      transition: all 0.4s var(--ease-smooth);
+    }
+    .toast.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    .toast.hide {
+      transform: translateX(120%);
+      opacity: 0;
+    }
+    .toast-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .toast-icon.success {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1));
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    .toast-icon.registro {
+      background: linear-gradient(135deg, rgba(201, 168, 76, 0.3), rgba(201, 168, 76, 0.1));
+      border: 1px solid var(--gold);
+    }
+    .toast-icon svg {
+      width: 22px;
+      height: 22px;
+      stroke: none;
+      fill: none;
+    }
+    .toast-icon.success svg {
+      stroke: #22c55e;
+      stroke-width: 2.5;
+    }
+    .toast-icon.registro svg {
+      stroke: var(--gold);
+      stroke-width: 2.5;
+    }
+    .toast-content {
+      flex: 1;
+    }
+    .toast-title {
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    .toast-message {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .toast-close {
+      background: none;
+      border: none;
+      padding: 4px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+    .toast-close:hover {
+      color: var(--text-primary);
+    }
+    .toast-close svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      stroke-width: 2;
+    }
+    @media (max-width: 480px) {
+      .toast-container {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+      }
+      .toast {
+        min-width: auto;
+        max-width: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Radio Inputs -->
+  <input type="radio" name="view" id="view-dashboard" class="view-radio" checked>
+  <input type="radio" name="view" id="view-analiticas" class="view-radio">
+  <input type="radio" name="view" id="view-rendimiento" class="view-radio">
+  <input type="radio" name="view" id="view-seguridad" class="view-radio">
+  <input type="radio" name="view" id="view-configuracion" class="view-radio">
+
+  <!-- Background -->
+  <div class="bg-layer">
+    <div class="bg-gradient"></div>
+    <div class="noise"></div>
+    <div class="grid-bg"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="particles">
+      <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+      <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+      <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+      <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+      <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+      <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+      <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+      <div class="particle"></div>
+    </div>
+  </div>
+
+  <input type="checkbox" id="sidebar-toggle">
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="dashboard">
+    <!-- ==================== SIDEBAR ==================== -->
+    <aside class="sidebar" id="sidebar">
+      <label for="sidebar-toggle" class="close-sidebar" title="Cerrar menú">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </label>
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">
+          <img src="/img/logo.png" alt="KINAL APP Logo">
+        </div>
+        <div>
+          <div class="sidebar-title">KINAL</div>
+          <div class="sidebar-version">Dashboard v2.0</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Principal</div>
+          <label for="view-dashboard" class="nav-item active" data-target="dashboard">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            Dashboard
+          </label>
+          <a th:href="@{/productos/dashboard}" class="nav-item" style="text-decoration:none;">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span>
+            Productos
+          </a>
+          <a th:href="@{/clientes/dashboard}" class="nav-item" style="text-decoration:none;">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>
+            Clientes
+          </a>
+          <a th:href="@{/ventas/dashboard}" class="nav-item" style="text-decoration:none;">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></span>
+            Ventas
+          </a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Gestión</div>
+          <a th:href="@{/usuarios/dashboard}" class="nav-item" style="text-decoration:none;">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+            Usuarios
+          </a>
+          <label for="view-analiticas" class="nav-item" data-target="analiticas">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+            Analíticas
+          </label>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Sistema</div>
+          <label for="view-rendimiento" class="nav-item" data-target="rendimiento">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg></span>
+            Rendimiento
+          </label>
+          <label for="view-seguridad" class="nav-item" data-target="seguridad">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+            Seguridad
+          </label>
+          <label for="view-configuracion" class="nav-item" data-target="configuracion">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>
+            Configuración
+          </label>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+          <a th:href="@{/logout}" class="user-card" style="text-decoration: none;">
+            <div class="user-avatar" th:text="${inicialesUsuario}">U</div>
+            <div class="user-info">
+              <div class="user-name" th:text="${nombreUsuario}">Usuario</div>
+              <div class="user-role" th:text="${rolUsuario}">Rol</div>
+            </div>
+          </a>
+      </div>
+    </aside>
+
+    <!-- ==================== MAIN ==================== -->
+    <main class="main-content">
+      <header class="top-header">
+        <div class="header-left">
+          <label for="sidebar-toggle" class="menu-btn" title="Menú">
+            <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </label>
+          <div>
+            <span class="page-title">KINAL APP</span>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" placeholder="Buscar...">
+          </div>
+          <a th:href="@{/dashboard}" class="header-btn" style="text-decoration: none;">
+            <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            <span class="notif-dot" th:if="${totalNotificaciones > 0}"></span>
+            <span class="notif-badge" th:if="${totalNotificaciones > 0}" th:text="${totalNotificaciones}">3</span>
+          </a>
+          <button class="header-btn">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- ==================== VIEW: DASHBOARD ==================== -->
+        <div class="view-panel view-dashboard">
+          <h2 class="view-title" style="font-family:'Cinzel',serif;font-size:1.6rem;font-weight:700;color:var(--text-primary);margin-bottom:6px;letter-spacing:1px;">Dashboard</h2>
+          <p class="view-breadcrumb" style="font-size:0.8rem;color:var(--text-muted);margin-bottom:24px;">Inicio / Panel de Control</p>
+
+          <!-- Estadísticas Generales de Todas las Entidades -->
+          <div class="stats-grid">
+            <!-- Productos -->
+            <div class="stat-card">
+              <div class="stat-header">
+                <div class="stat-icon gold"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
+                <span class="stat-trend up" th:if="${productosBajoStock > 0}">⚠ <span th:text="${productosBajoStock}">0</span> bajo stock</span>
+                <span class="stat-trend up" th:if="${productosBajoStock == 0}">✓ OK</span>
+              </div>
+              <div class="stat-value" th:text="${totalProductos} ?: '0'">0</div>
+              <div class="stat-label">Total Productos</div>
+              <div class="stat-bar"><div class="stat-bar-fill gold" th:style="'width:' + (${totalProductos > 0} ? (${productosBajoStock * 100 / totalProductos}) : 0) + '%'"></div></div>
+            </div>
+            <!-- Clientes -->
+            <div class="stat-card">
+              <div class="stat-header">
+                <div class="stat-icon blue"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
+                <span class="stat-trend up" th:if="${clientesActivos > 0}">▲ <span th:text="${clientesActivos}">0</span> activos</span>
+              </div>
+              <div class="stat-value" th:text="${totalClientes} ?: '0'">0</div>
+              <div class="stat-label">Total Clientes</div>
+              <div class="stat-bar"><div class="stat-bar-fill blue" th:style="'width:' + (${totalClientes > 0} ? (${clientesActivos * 100 / totalClientes}) : 0) + '%'"></div></div>
+            </div>
+            <!-- Ventas -->
+            <div class="stat-card">
+              <div class="stat-header">
+                <div class="stat-icon flame"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+                <span class="stat-trend up" th:text="${totalVentas > 0} ? '▲ ' + ${totalVentas} + ' ventas' : 'Sin ventas'">Sin ventas</span>
+              </div>
+              <div class="stat-value" th:text="${ingresosTotales != null && ingresosTotales > 0} ? 'Q' + ${#numbers.formatDecimal(ingresosTotales, 0, 2)} : 'Q0.00'">Q0.00</div>
+              <div class="stat-label">Ingresos Totales</div>
+              <div class="stat-bar"><div class="stat-bar-fill flame" style="width:65%"></div></div>
+            </div>
+            <!-- Usuarios -->
+            <div class="stat-card">
+              <div class="stat-header">
+                <div class="stat-icon green"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+                <span class="stat-trend up" th:if="${totalUsuarios > 0}">▲ <span th:text="${totalUsuarios}">0</span> registrados</span>
+              </div>
+              <div class="stat-value" th:text="${totalUsuarios} ?: '0'">0</div>
+              <div class="stat-label">Total Usuarios</div>
+              <div class="stat-bar"><div class="stat-bar-fill green" style="width:92%"></div></div>
+            </div>
+          </div>
+
+          <div class="dashboard-grid">
+            <div class="card">
+              <div class="card-header">
+                <div><div class="card-title">Resumen de Ingresos</div><div class="card-subtitle">Comparativa mensual 2024</div></div>
+                <div class="card-actions"><button class="card-action-btn active">Mensual</button><button class="card-action-btn">Semanal</button></div>
+              </div>
+              <div class="card-body">
+                <div class="chart-container">
+                  <svg class="chart-svg" viewBox="0 0 600 260" preserveAspectRatio="none">
+                    <defs><linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#c9a84c" stop-opacity="0.4"/><stop offset="100%" stop-color="#c9a84c" stop-opacity="0"/></linearGradient></defs>
+                    <line class="chart-grid-line" x1="40" y1="30" x2="580" y2="30"/><line class="chart-grid-line" x1="40" y1="80" x2="580" y2="80"/><line class="chart-grid-line" x1="40" y1="130" x2="580" y2="130"/><line class="chart-grid-line" x1="40" y1="180" x2="580" y2="180"/><line class="chart-grid-line" x1="40" y1="230" x2="580" y2="230"/>
+                    <text class="chart-label" x="35" y="34" text-anchor="end">50K</text><text class="chart-label" x="35" y="84" text-anchor="end">40K</text><text class="chart-label" x="35" y="134" text-anchor="end">30K</text><text class="chart-label" x="35" y="184" text-anchor="end">20K</text><text class="chart-label" x="35" y="234" text-anchor="end">10K</text>
+                    <text class="chart-label" x="60" y="250" text-anchor="middle">Ene</text><text class="chart-label" x="130" y="250" text-anchor="middle">Feb</text><text class="chart-label" x="200" y="250" text-anchor="middle">Mar</text><text class="chart-label" x="270" y="250" text-anchor="middle">Abr</text><text class="chart-label" x="340" y="250" text-anchor="middle">May</text><text class="chart-label" x="410" y="250" text-anchor="middle">Jun</text><text class="chart-label" x="480" y="250" text-anchor="middle">Jul</text><text class="chart-label" x="550" y="250" text-anchor="middle">Ago</text>
+                    <path class="chart-area" d="M60,180 L130,140 L200,160 L270,100 L340,120 L410,70 L480,90 L550,50 L550,230 L60,230 Z"/>
+                    <path class="chart-line-secondary" d="M60,200 L130,170 L200,190 L270,150 L340,170 L410,120 L480,140 L550,100"/>
+                    <path class="chart-line" d="M60,180 L130,140 L200,160 L270,100 L340,120 L410,70 L480,90 L550,50"/>
+                    <circle class="chart-dot" cx="60" cy="180" r="4"/><circle class="chart-dot" cx="130" cy="140" r="4"/><circle class="chart-dot" cx="200" cy="160" r="4"/><circle class="chart-dot" cx="270" cy="100" r="4"/><circle class="chart-dot" cx="340" cy="120" r="4"/><circle class="chart-dot" cx="410" cy="70" r="4"/><circle class="chart-dot" cx="480" cy="90" r="4"/><circle class="chart-dot" cx="550" cy="50" r="4"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><div><div class="card-title">Visitas por Día</div><div class="card-subtitle">Última semana</div></div></div>
+              <div class="card-body">
+                <div class="bar-chart">
+                  <div class="bar-group"><div class="bar-value">420</div><div class="bar gold-bar" style="height:55%"></div><div class="bar-label">Lun</div></div>
+                  <div class="bar-group"><div class="bar-value">680</div><div class="bar flame-bar" style="height:85%"></div><div class="bar-label">Mar</div></div>
+                  <div class="bar-group"><div class="bar-value">350</div><div class="bar gold-bar" style="height:42%"></div><div class="bar-label">Mié</div></div>
+                  <div class="bar-group"><div class="bar-value">890</div><div class="bar flame-bar" style="height:100%"></div><div class="bar-label">Jue</div></div>
+                  <div class="bar-group"><div class="bar-value">520</div><div class="bar gold-bar" style="height:62%"></div><div class="bar-label">Vie</div></div>
+                  <div class="bar-group"><div class="bar-value">730</div><div class="bar flame-bar" style="height:88%"></div><div class="bar-label">Sáb</div></div>
+                  <div class="bar-group"><div class="bar-value">290</div><div class="bar gold-bar" style="height:35%"></div><div class="bar-label">Dom</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="full-width-section">
+            <div class="card">
+              <div class="card-header"><div><div class="card-title">Usuarios Recientes</div><div class="card-subtitle">Últimas cuentas registradas</div></div><div class="card-actions"><button class="card-action-btn">Exportar</button><button class="card-action-btn active">Ver todo</button></div></div>
+              <div class="card-body" style="padding:0;">
+                <div class="table-wrapper">
+                  <table class="data-table">
+                    <thead><tr><th>Usuario</th><th>Estado</th><th>Plan</th><th>Progreso</th><th>Registro</th></tr></thead>
+                    <tbody>
+                      <tr><td><div class="table-user"><div class="table-avatar" style="background:linear-gradient(135deg,var(--gold-dark),var(--gold));">AL</div><div class="table-user-info"><div class="name">Ana López</div><div class="email">ana@ejemplo.com</div></div></div></td><td><span class="status-badge active"><span class="status-dot-sm"></span>Activo</span></td><td style="color:var(--gold);font-weight:600;">Premium</td><td><div class="progress-mini"><div class="progress-mini-fill" style="width:85%;background:var(--gold);"></div></div>85%</td><td style="font-size:0.78rem;color:var(--text-muted);">Hace 2 min</td></tr>
+                      <tr><td><div class="table-user"><div class="table-avatar" style="background:linear-gradient(135deg,var(--flame-dark),var(--flame));">MR</div><div class="table-user-info"><div class="name">Miguel R.</div><div class="email">miguel@ejemplo.com</div></div></div></td><td><span class="status-badge active"><span class="status-dot-sm"></span>Activo</span></td><td style="color:var(--text-secondary);font-weight:600;">Básico</td><td><div class="progress-mini"><div class="progress-mini-fill" style="width:42%;background:var(--flame);"></div></div>42%</td><td style="font-size:0.78rem;color:var(--text-muted);">Hace 15 min</td></tr>
+                      <tr><td><div class="table-user"><div class="table-avatar" style="background:linear-gradient(135deg,#16a34a,var(--success));">LG</div><div class="table-user-info"><div class="name">Laura García</div><div class="email">laura@ejemplo.com</div></div></div></td><td><span class="status-badge pending"><span class="status-dot-sm"></span>Pendiente</span></td><td style="color:var(--gold);font-weight:600;">Premium</td><td><div class="progress-mini"><div class="progress-mini-fill" style="width:68%;background:var(--warning);"></div></div>68%</td><td style="font-size:0.78rem;color:var(--text-muted);">Hace 1 hora</td></tr>
+                      <tr><td><div class="table-user"><div class="table-avatar" style="background:linear-gradient(135deg,#0284c7,var(--info));">JP</div><div class="table-user-info"><div class="name">Javier Pérez</div><div class="email">javier@ejemplo.com</div></div></div></td><td><span class="status-badge inactive"><span class="status-dot-sm"></span>Inactivo</span></td><td style="color:var(--text-secondary);font-weight:600;">Básico</td><td><div class="progress-mini"><div class="progress-mini-fill" style="width:15%;background:var(--error);"></div></div>15%</td><td style="font-size:0.78rem;color:var(--text-muted);">Hace 3 horas</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bottom-grid">
+            <div class="card">
+              <div class="card-header"><div><div class="card-title">Distribución</div><div class="card-subtitle">Planes activos</div></div></div>
+              <div class="card-body">
+                <div class="donut-container">
+                  <div class="donut-chart"><svg viewBox="0 0 120 120"><circle class="donut-track" cx="60" cy="60" r="50"/><circle class="donut-segment" cx="60" cy="60" r="50" stroke="var(--gold)" stroke-dasharray="125 314"/><circle class="donut-segment" cx="60" cy="60" r="50" stroke="var(--flame)" stroke-dasharray="94 314" stroke-dashoffset="-125"/><circle class="donut-segment" cx="60" cy="60" r="50" stroke="var(--success)" stroke-dasharray="63 314" stroke-dashoffset="-219"/><circle class="donut-segment" cx="60" cy="60" r="50" stroke="var(--info)" stroke-dasharray="32 314" stroke-dashoffset="-282"/></svg><div class="donut-center"><div class="donut-value">2.8K</div><div class="donut-label-text">Total</div></div></div>
+                  <div class="donut-legend">
+                    <div class="legend-item"><span class="legend-dot" style="background:var(--gold);"></span>Premium<span class="legend-value">40%</span></div>
+                    <div class="legend-item"><span class="legend-dot" style="background:var(--flame);"></span>Enterprise<span class="legend-value">30%</span></div>
+                    <div class="legend-item"><span class="legend-dot" style="background:var(--success);"></span>Básico<span class="legend-value">20%</span></div>
+                    <div class="legend-item"><span class="legend-dot" style="background:var(--info);"></span>Trial<span class="legend-value">10%</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><div><div class="card-title">Actividad Reciente</div><div class="card-subtitle">Últimas acciones</div></div></div>
+              <div class="card-body">
+                <div class="activity-list">
+                  <div class="activity-item"><div class="activity-dot gold"></div><div class="activity-content"><div class="activity-text"><strong>Ana López</strong> actualizó su perfil</div><div class="activity-time">Hace 2 minutos</div></div></div>
+                  <div class="activity-item"><div class="activity-dot green"></div><div class="activity-content"><div class="activity-text">Nueva suscripción <strong>Premium</strong> creada</div><div class="activity-time">Hace 15 minutos</div></div></div>
+                  <div class="activity-item"><div class="activity-dot flame"></div><div class="activity-content"><div class="activity-text"><strong>Miguel R.</strong> reportó un incidente</div><div class="activity-time">Hace 1 hora</div></div></div>
+                  <div class="activity-item"><div class="activity-dot blue"></div><div class="activity-content"><div class="activity-text">Sistema actualizado a <strong>v2.1.0</strong></div><div class="activity-time">Hace 3 horas</div></div></div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><div><div class="card-title">Acciones Rápidas</div><div class="card-subtitle">Accesos frecuentes</div></div></div>
+              <div class="card-body">
+                <div class="quick-actions">
+                  <a th:href="@{/productos/dashboard}" class="quick-action-btn">
+                    <div class="quick-action-icon" style="background:linear-gradient(135deg,var(--gold-dark),var(--gold));">
+                      <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                    </div>
+                    <span class="quick-action-label">Dashboard de Productos</span>
+                  </a>
+                  <a th:href="@{/clientes/dashboard}" class="quick-action-btn">
+                    <div class="quick-action-icon" style="background:linear-gradient(135deg,#0284c7,var(--info));">
+                      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                    </div>
+                    <span class="quick-action-label">Dashboard de Clientes</span>
+                  </a>
+                  <a th:href="@{/ventas/dashboard}" class="quick-action-btn">
+                    <div class="quick-action-icon" style="background:linear-gradient(135deg,var(--flame-dark),var(--flame));">
+                      <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+                    </div>
+                    <span class="quick-action-label">Dashboard de Ventas</span>
+                  </a>
+                  <a th:href="@{/usuarios/dashboard}" class="quick-action-btn">
+                    <div class="quick-action-icon" style="background:linear-gradient(135deg,var(--purple),#a78bfa);">
+                      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                    <span class="quick-action-label">Dashboard de Usuarios</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== VIEW: ANALÍTICAS ==================== -->
+        <div class="view-panel view-analiticas">
+          <h2 class="view-title" style="font-family:'Cinzel',serif;font-size:1.6rem;font-weight:700;color:var(--text-primary);margin-bottom:6px;letter-spacing:1px;">Analíticas</h2>
+          <p class="view-breadcrumb" style="font-size:0.8rem;color:var(--text-muted);margin-bottom:24px;">Reportes / Analíticas</p>
+
+          <div class="analytics-grid">
+            <div class="analytics-card">
+              <div class="ac-header"><span class="ac-title">Páginas Vistas</span><span class="ac-change up">▲ 24.5%</span></div>
+              <div class="ac-value">48,234</div>
+              <div class="mini-chart">
+                <div class="mini-bar gold" style="height:40%"></div><div class="mini-bar gold" style="height:55%"></div><div class="mini-bar gold" style="height:45%"></div><div class="mini-bar gold" style="height:70%"></div><div class="mini-bar gold" style="height:60%"></div><div class="mini-bar gold" style="height:80%"></div><div class="mini-bar gold" style="height:75%"></div><div class="mini-bar gold" style="height:90%"></div><div class="mini-bar gold" style="height:85%"></div><div class="mini-bar gold" style="height:95%"></div><div class="mini-bar gold" style="height:100%"></div><div class="mini-bar gold" style="height:88%"></div>
+              </div>
+            </div>
+            <div class="analytics-card">
+              <div class="ac-header"><span class="ac-title">Tasa de Conversión</span><span class="ac-change up">▲ 3.2%</span></div>
+              <div class="ac-value">4.8%</div>
+              <div class="mini-chart">
+                <div class="mini-bar flame" style="height:30%"></div><div class="mini-bar flame" style="height:45%"></div><div class="mini-bar flame" style="height:35%"></div><div class="mini-bar flame" style="height:50%"></div><div class="mini-bar flame" style="height:55%"></div><div class="mini-bar flame" style="height:60%"></div><div class="mini-bar flame" style="height:65%"></div><div class="mini-bar flame" style="height:58%"></div><div class="mini-bar flame" style="height:70%"></div><div class="mini-bar flame" style="height:75%"></div><div class="mini-bar flame" style="height:80%"></div><div class="mini-bar flame" style="height:78%"></div>
+              </div>
+            </div>
+            <div class="analytics-card">
+              <div class="ac-header"><span class="ac-title">Tiempo Promedio</span><span class="ac-change down">▼ 1.2%</span></div>
+              <div class="ac-value">3:42</div>
+              <div class="mini-chart">
+                <div class="mini-bar green" style="height:80%"></div><div class="mini-bar green" style="height:75%"></div><div class="mini-bar green" style="height:70%"></div><div class="mini-bar green" style="height:85%"></div><div class="mini-bar green" style="height:60%"></div><div class="mini-bar green" style="height:55%"></div><div class="mini-bar green" style="height:50%"></div><div class="mini-bar green" style="height:65%"></div><div class="mini-bar green" style="height:45%"></div><div class="mini-bar green" style="height:40%"></div><div class="mini-bar green" style="height:50%"></div><div class="mini-bar green" style="height:48%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-grid">
+            <div class="card">
+              <div class="card-header"><div><div class="card-title">Tráfico por Fuente</div><div class="card-subtitle">Distribución mensual</div></div></div>
+              <div class="card-body">
+                <div class="chart-container">
+                  <svg class="chart-svg" viewBox="0 0 600 260" preserveAspectRatio="none">
+                    <line class="chart-grid-line" x1="40" y1="30" x2="580" y2="30"/><line class="chart-grid-line" x1="40" y1="80" x2="580" y2="80"/><line class="chart-grid-line" x1="40" y1="130" x2="580" y2="130"/><line class="chart-grid-line" x1="40" y1="180" x2="580" y2="180"/><line class="chart-grid-line" x1="40" y1="230" x2="580" y2="230"/>
+                    <text class="chart-label" x="35" y="34" text-anchor="end">10K</text><text class="chart-label" x="35" y="84" text-anchor="end">8K</text><text class="chart-label" x="35" y="134" text-anchor="end">6K</text><text class="chart-label" x="35" y="184" text-anchor="end">4K</text><text class="chart-label" x="35" y="234" text-anchor="end">2K</text>
+                    <text class="chart-label" x="60" y="250" text-anchor="middle">Lun</text><text class="chart-label" x="130" y="250" text-anchor="middle">Mar</text><text class="chart-label" x="200" y="250" text-anchor="middle">Mié</text><text class="chart-label" x="270" y="250" text-anchor="middle">Jue</text><text class="chart-label" x="340" y="250" text-anchor="middle">Vie</text><text class="chart-label" x="410" y="250" text-anchor="middle">Sáb</text><text class="chart-label" x="480" y="250" text-anchor="middle">Dom</text>
+                    <path class="chart-area" d="M60,150 L130,120 L200,140 L270,80 L340,100 L410,60 L480,70 L550,40 L550,230 L60,230 Z"/>
+                    <path class="chart-line" d="M60,150 L130,120 L200,140 L270,80 L340,100 L410,60 L480,70 L550,40"/>
+                    <circle class="chart-dot" cx="60" cy="150" r="4"/><circle class="chart-dot" cx="130" cy="120" r="4"/><circle class="chart-dot" cx="200" cy="140" r="4"/><circle class="chart-dot" cx="270" cy="80" r="4"/><circle class="chart-dot" cx="340" cy="100" r="4"/><circle class="chart-dot" cx="410" cy="60" r="4"/><circle class="chart-dot" cx="480" cy="70" r="4"/><circle class="chart-dot" cx="550" cy="40" r="4"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><div><div class="card-title">Top Páginas</div><div class="card-subtitle">Más visitadas</div></div></div>
+              <div class="card-body" style="padding:0;">
+                <table class="data-table">
+                  <thead><tr><th>Página</th><th>Vistas</th><th>Bounce</th></tr></thead>
+                  <tbody>
+                    <tr><td style="color:var(--text-primary);font-weight:600;">/dashboard</td><td>12,450</td><td><span style="color:var(--success);">18%</span></td></tr>
+                    <tr><td style="color:var(--text-primary);font-weight:600;">/inicio</td><td>9,820</td><td><span style="color:var(--warning);">32%</span></td></tr>
+                    <tr><td style="color:var(--text-primary);font-weight:600;">/precios</td><td>7,340</td><td><span style="color:var(--success);">22%</span></td></tr>
+                    <tr><td style="color:var(--text-primary);font-weight:600;">/blog</td><td>5,210</td><td><span style="color:var(--error);">58%</span></td></tr>
+                    <tr><td style="color:var(--text-primary);font-weight:600;">/contacto</td><td>3,890</td><td><span style="color:var(--success);">15%</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== VIEW: RENDIMIENTO ==================== -->
+        <div class="view-panel view-rendimiento">
+          <h2 class="view-title" style="font-family:'Cinzel',serif;font-size:1.6rem;font-weight:700;color:var(--text-primary);margin-bottom:6px;letter-spacing:1px;">Rendimiento del Sistema</h2>
+          <p class="view-breadcrumb" style="font-size:0.8rem;color:var(--text-muted);margin-bottom:24px;">Sistema / Rendimiento</p>
+
+          <div class="perf-grid">
+            <div class="perf-card">
+              <div class="perf-header">
+                <div><div class="perf-title">Uso de CPU</div><div class="perf-subtitle">Tiempo real</div></div>
+                <div class="perf-value" style="color:var(--gold);">67%</div>
+              </div>
+              <div class="perf-meter"><div class="perf-meter-fill gold" style="width:67%"></div></div>
+              <div class="perf-details">
+                <div class="perf-detail"><div class="perf-detail-label">Mín</div><div class="perf-detail-value">12%</div></div>
+                <div class="perf-detail"><div class="perf-detail-label">Prom</div><div class="perf-detail-value">45%</div></div>
+                <div class="perf-detail"><div class="perf-detail-label">Máx</div><div class="perf-detail-value">89%</div></div>
+                <div class="perf-detail"><div class="perf-detail-label">Núcleos</div><div class="perf-detail-value">8</div></div>
+              </div>
+            </div>
+            <div class="perf-card">
+              <div class="perf-header">
+                <div><div class="perf-title">Memoria RAM</div><div class="perf-subtitle">16 GB Total</div></div>
+                <div class="perf-value" style="color:var(--success);">11.2 GB</div>
+              </div>
+              <div class="perf-meter"><div class="perf-meter-fill green" style="width:70%"></div></div>
+              <div class="perf-details">
+                <div class="perf-detail"><div class="perf-detail-label">Usada</div><div class="perf-detail-value">11.2 GB</div></div>
+                <div class="perf-detail"><div class="perf-detail-label">Cache</div><div class="perf-detail-value">2.1 GB</div></div>
+                <div class="perf-detail"><div class="perf-detail-label">Libre</div><div class="perf-detail-value">2.7 GB</div></div>
+                <div class="perf-detail"><div class="perf-detail-label">Swap</div><div class="perf-detail-value">0.4 GB</div></div>
+              </div>
+            </div>
+            <div class="perf-card">
+              <div class="perf-header">
+                <div><div class="perf-title">Red</div><div class="perf-subtitle">Ancho de banda</div></div>
+                <div class="perf-value" style="color:var(--info);">245 MB/s</div>
+              </div>
+              <div class="perf-meter"><div class="perf-meter-fill blue" style="width:49%"></div></div>
+              <div class="perf-details">
+                <div class="perf-detail"><div class="perf-detail-label">Entrada</div><div class="perf-detail-value">120 MB/s</div></div>
+                <div class="perf-detail"><div class="perf-detail-label">Salida</div><div class="perf-detail-value">125 MB/s</div></div>
+                <div class="perf-detail"><div class="perf-detail-label">Latencia</div><div class="perf-detail-value">12ms</div></div>
+                <div class="perf-detail"><div class="perf-detail-label">Pérdida</div><div class="perf-detail-value">0.01%</div></div>
+              </div>
+            </div>
+            <div class="perf-card">
+              <div class="perf-header">
+                <div><div class="perf-title">Disco</div><div class="perf-subtitle">SSD NVMe 1TB</div></div>
+                <div class="perf-value" style="color:var(--flame);">62%</div>
+              </div>
+              <div class="perf-meter"><div class="perf-meter-fill flame" style="width:62%"></div></div>
+              <div class="perf-details">
+                <div class="perf-detail"><div class="perf-detail-label">Usado</div><div class="perf-detail-value">620 GB</div></div>
+                <div class="perf-detail"><div class="perf-detail-label">Libre</div><div class="perf-detail-value">380 GB</div></div>
+                <div class="perf-detail"><div class="perf-detail-label">Lectura</div><div class="perf-detail-value">2.1 GB/s</div></div>
+                <div class="perf-detail"><div class="perf-detail-label">Escritura</div><div class="perf-detail-value">1.8 GB/s</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title">Uptime del Servidor</div><div class="card-subtitle">Últimos 30 días</div></div>
+              <div class="card-actions"><button class="card-action-btn active">30 días</button><button class="card-action-btn">90 días</button></div>
+            </div>
+            <div class="card-body">
+              <div style="display:flex;align-items:center;gap:24px;">
+                <div style="text-align:center;">
+                  <div style="font-family:'Cinzel',serif;font-size:2.5rem;font-weight:700;color:var(--success);">99.97%</div>
+                  <div style="font-size:0.78rem;color:var(--text-muted);">Uptime Total</div>
+                </div>
+                <div style="flex:1;">
+                  <div class="uptime-bars">
+                    <div class="uptime-bar perfect" title="Día 1: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 2: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 3: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 4: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 5: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 6: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 7: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 8: 100%"></div>
+                    <div class="uptime-bar minor" title="Día 9: Mantenimiento"></div>
+                    <div class="uptime-bar perfect" title="Día 10: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 11: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 12: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 13: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 14: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 15: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 16: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 17: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 18: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 19: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 20: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 21: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 22: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 23: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 24: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 25: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 26: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 27: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 28: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 29: 100%"></div>
+                    <div class="uptime-bar perfect" title="Día 30: 100%"></div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:0.68rem;color:var(--text-dim);">
+                    <span>Hace 30 días</span><span>Hoy</span> 
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== VIEW: SEGURIDAD ==================== -->
+        <div class="view-panel view-seguridad">
+          <h2 class="view-title" style="font-family:'Cinzel',serif;font-size:1.6rem;font-weight:700;color:var(--text-primary);margin-bottom:6px;letter-spacing:1px;">Seguridad</h2>
+          <p class="view-breadcrumb" style="font-size:0.8rem;color:var(--text-muted);margin-bottom:24px;">Sistema / Seguridad</p>
+
+          <div class="security-grid">
+            <div class="security-card">
+              <div class="sc-header">
+                <div class="sc-icon success"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9,12 12,15 17,10"/></svg></div>
+                <div><div class="sc-title">Autenticación de Dos Factores</div><div class="sc-subtitle">2FA Activado</div></div>
+              </div>
+              <div class="sc-body">La autenticación de dos factores está activada para tu cuenta. Esto añade una capa extra de seguridad.</div>
+              <button class="sc-action">Configurar 2FA</button>
+            </div>
+            <div class="security-card">
+              <div class="sc-header">
+                <div class="sc-icon gold"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+                <div><div class="sc-title">Contraseña</div><div class="sc-subtitle">Último cambio: hace 15 días</div></div>
+              </div>
+              <div class="sc-body">Te recomendamos cambiar tu contraseña cada 90 días para mantener la seguridad de tu cuenta.</div>
+              <button class="sc-action">Cambiar Contraseña</button>
+            </div>
+            <div class="security-card">
+              <div class="sc-header">
+                <div class="sc-icon warning"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+                <div><div class="sc-title">Sesiones Activas</div><div class="sc-subtitle">3 sesiones detectadas</div></div>
+              </div>
+              <div class="sc-body">Tienes 3 sesiones activas en diferentes dispositivos. Revisa y cierra las sesiones que no reconozcas.</div>
+              <button class="sc-action">Ver Sesiones</button>
+            </div>
+            <div class="security-card">
+              <div class="sc-header">
+                <div class="sc-icon danger"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+                <div><div class="sc-title">Intentos de Acceso</div><div class="sc-subtitle">2 intentos fallidos hoy</div></div>
+              </div>
+              <div class="sc-body">Se detectaron 2 intentos de acceso fallidos desde una IP desconocida. Revisa el registro de auditoría.</div>
+              <button class="sc-action">Ver Registro</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== VIEW: CONFIGURACIÓN ==================== -->
+        <div class="view-panel view-configuracion">
+          <h2 class="view-title" style="font-family:'Cinzel',serif;font-size:1.6rem;font-weight:700;color:var(--text-primary);margin-bottom:6px;letter-spacing:1px;">Configuración</h2>
+          <p class="view-breadcrumb" style="font-size:0.8rem;color:var(--text-muted);margin-bottom:24px;">Sistema / Configuración</p>
+
+          <div class="settings-section">
+            <div class="settings-section-title">Preferencias Generales</div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Notificaciones por Email</div>
+                <div class="setting-desc">Recibir notificaciones importantes por correo electrónico</div>
+              </div>
+              <div class="toggle-switch active"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Modo Oscuro</div>
+                <div class="setting-desc">Activar tema oscuro para la interfaz</div>
+              </div>
+              <div class="toggle-switch active"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Sonidos del Sistema</div>
+                <div class="setting-desc">Reproducir sonidos para notificaciones y alertas</div>
+              </div>
+              <div class="toggle-switch"></div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-title">Privacidad y Seguridad</div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Actividad de Inicio de Sesión</div>
+                <div class="setting-desc">Recibir alertas cuando se detecte un nuevo inicio de sesión</div>
+              </div>
+              <div class="toggle-switch active"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Autenticación de Dos Factores</div>
+                <div class="setting-desc">Requerir código adicional para iniciar sesión</div>
+              </div>
+              <div class="toggle-switch active"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Compartir Datos de Uso</div>
+                <div class="setting-desc">Permitir recopilar datos anónimos para mejorar el sistema</div>
+              </div>
+              <div class="toggle-switch"></div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-title">Personalización</div>
+            <div class="setting-row" style="flex-direction:column;align-items:flex-start;">
+              <div class="setting-info" style="margin-bottom:12px;">
+                <div class="setting-label">Paleta de Colores</div>
+                <div class="setting-desc">Selecciona el tema de colores para toda la aplicación</div>
+              </div>
+              <div class="color-palette" style="display:flex;gap:12px;flex-wrap:wrap;">
+                <button class="theme-btn active" data-theme="default" style="width:50px;height:50px;border-radius:50%;border:3px solid var(--gold);background:linear-gradient(135deg,#c9a84c,#e85d26);cursor:pointer;position:relative;">
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="white" fill="none" stroke-width="3" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:block;"><polyline points="20 6 9 17 4 12"/></svg>
+                </button>
+                <button class="theme-btn" data-theme="ocean" style="width:50px;height:50px;border-radius:50%;border:3px solid transparent;background:linear-gradient(135deg,#06b6d4,#3b82f6);cursor:pointer;position:relative;">
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="white" fill="none" stroke-width="3" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:none;"><polyline points="20 6 9 17 4 12"/></svg>
+                </button>
+                <button class="theme-btn" data-theme="forest" style="width:50px;height:50px;border-radius:50%;border:3px solid transparent;background:linear-gradient(135deg,#22c55e,#16a34a);cursor:pointer;position:relative;">
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="white" fill="none" stroke-width="3" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:none;"><polyline points="20 6 9 17 4 12"/></svg>
+                </button>
+                <button class="theme-btn" data-theme="purple" style="width:50px;height:50px;border-radius:50%;border:3px solid transparent;background:linear-gradient(135deg,#a855f7,#7c3aed);cursor:pointer;position:relative;">
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="white" fill="none" stroke-width="3" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:none;"><polyline points="20 6 9 17 4 12"/></svg>
+                </button>
+                <button class="theme-btn" data-theme="monochrome" style="width:50px;height:50px;border-radius:50%;border:3px solid transparent;background:linear-gradient(135deg,#9ca3af,#4b5563);cursor:pointer;position:relative;">
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="white" fill="none" stroke-width="3" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:none;"><polyline points="20 6 9 17 4 12"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notifications Container -->
+  <div class="toast-container" id="toastContainer">
+    <!-- Toast de Bienvenida -->
+    <div th:if="${toastBienvenida}" class="toast" id="toastBienvenida" th:data-type="${toastTipo}">
+      <div class="toast-icon success">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </div>
+      <div class="toast-content">
+        <div class="toast-title">¡BIENVENIDO A KINAL APP!</div>
+        <div class="toast-message" th:text="${toastBienvenida}">Usuario</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications - Estáticos sin JavaScript -->
+  <div th:if="${toastBienvenida}" style="position: fixed; top: 20px; right: 20px; z-index: 9999; background: rgba(10, 22, 40, 0.98); border: 1px solid rgba(201, 168, 76, 0.3); border-radius: 12px; padding: 16px 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); backdrop-filter: blur(20px); display: flex; align-items: center; gap: 12px; min-width: 320px; max-width: 420px;">
+    <div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1)); border: 1px solid rgba(34, 197, 94, 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+      <svg viewBox="0 0 24 24" width="22" height="22" stroke="#22c55e" stroke-width="2.5" fill="none"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    </div>
+    <div style="flex: 1;">
+      <div style="font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.9rem; color: var(--text-primary); margin-bottom: 4px;">¡BIENVENIDO A KINAL APP!</div>
+      <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;" th:text="${toastBienvenida}">Usuario</div>
+    </div>
+  </div>
+
+  <div th:if="${toastNovedades}" style="position: fixed; top: 100px; right: 20px; z-index: 9999; background: rgba(10, 22, 40, 0.98); border: 1px solid rgba(201, 168, 76, 0.3); border-radius: 12px; padding: 16px 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); backdrop-filter: blur(20px); display: flex; align-items: center; gap: 12px; min-width: 320px; max-width: 420px;">
+    <div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1)); border: 1px solid rgba(34, 197, 94, 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+      <svg viewBox="0 0 24 24" width="22" height="22" stroke="#22c55e" stroke-width="2.5" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+    </div>
+    <div style="flex: 1;">
+      <div style="font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.9rem; color: var(--text-primary); margin-bottom: 4px;">Novedades</div>
+      <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;" th:text="${toastNovedades}">Puedes revisar las nuevas novedades</div>
+    </div>
+  </div>
+
+  <div th:if="${toastExito}" style="position: fixed; top: 20px; right: 20px; z-index: 9999; background: rgba(10, 22, 40, 0.98); border: 1px solid rgba(201, 168, 76, 0.3); border-radius: 12px; padding: 16px 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); backdrop-filter: blur(20px); display: flex; align-items: center; gap: 12px; min-width: 320px; max-width: 420px;">
+    <div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, rgba(201, 168, 76, 0.3), rgba(201, 168, 76, 0.1)); border: 1px solid var(--gold); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+      <svg viewBox="0 0 24 24" width="22" height="22" stroke="var(--gold)" stroke-width="2.5" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+    </div>
+    <div style="flex: 1;">
+      <div style="font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.9rem; color: var(--text-primary); margin-bottom: 4px;">¡FELICIDADES!</div>
+      <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;" th:text="${toastExito}">Te has registrado exitosamente</div>
+    </div>
+  </div>
+
+</body>
+</html>
+

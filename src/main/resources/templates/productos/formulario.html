@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="${editar} ? 'Editar Producto - Kinal App' : 'Nuevo Producto - Kinal App'">Formulario Producto</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy-deep: #0a1628;
+      --navy-dark: #0d1b2a;
+      --navy-medium: #1b263b;
+      --gold: #c9a84c;
+      --gold-light: #e0c066;
+      --gold-dark: #a88a3a;
+      --flame: #e63946;
+      --text-primary: #e8e6e3;
+      --text-secondary: #b8b5b0;
+      --text-muted: #8a857d;
+      --text-dim: #6b6560;
+      --success: #22c55e;
+      --error: #ef4444;
+      --warning: #f59e0b;
+      --info: #06b6d4;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: var(--navy-deep); color: var(--text-primary); min-height: 100vh; }
+
+    /* ==================== SIDEBAR ==================== */
+    .sidebar {
+      position: fixed; left: 0; top: 0; width: 260px; height: 100vh;
+      background: linear-gradient(180deg, rgba(13, 27, 42, 0.98) 0%, rgba(11, 22, 34, 0.98) 100%);
+      border-right: 1px solid rgba(201, 168, 76, 0.15); z-index: 100;
+      display: flex; flex-direction: column; padding: 24px 0;
+    }
+    .logo-container { padding: 0 20px 24px; border-bottom: 1px solid rgba(201, 168, 76, 0.1); margin-bottom: 16px; }
+    .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .logo-icon {
+      width: 42px; height: 42px;
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      overflow: hidden; background: transparent;
+    }
+    .logo-icon img { width: 100%; height: 100%; object-fit: cover; }
+    .logo-text { font-family: 'Cinzel', serif; font-size: 1.3rem; font-weight: 600; color: var(--gold); letter-spacing: 1px; }
+
+    .nav-section { padding: 8px 16px; }
+    .nav-section-title { font-size: 0.7rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; padding: 0 12px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+      color: var(--text-secondary); text-decoration: none; font-size: 0.88rem;
+      border-radius: 8px; transition: all 0.2s; cursor: pointer; position: relative;
+    }
+    .nav-item:hover { background: rgba(201, 168, 76, 0.08); color: var(--text-primary); }
+    .nav-item.active { background: linear-gradient(90deg, rgba(201, 168, 76, 0.15) 0%, transparent 100%); color: var(--gold); }
+    .nav-item.active::before {
+      content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      width: 3px; height: 60%; background: linear-gradient(180deg, var(--gold), var(--flame)); border-radius: 0 2px 2px 0;
+    }
+    .nav-icon { width: 18px; height: 18px; flex-shrink: 0; }
+    .nav-icon svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+    .sidebar-footer { margin-top: auto; padding: 16px; border-top: 1px solid rgba(201, 168, 76, 0.08); }
+    .user-card { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(201, 168, 76, 0.05); border-radius: 10px; border: 1px solid rgba(201, 168, 76, 0.1); }
+    .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--gold-dark), var(--gold)); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.8rem; color: var(--navy-deep); }
+    .user-name { font-size: 0.85rem; font-weight: 500; color: var(--text-primary); }
+    .user-role { font-size: 0.7rem; color: var(--text-muted); }
+
+    /* ==================== MAIN CONTENT ==================== */
+    .main-content { margin-left: 260px; min-height: 100vh; }
+    .top-header {
+      position: sticky; top: 0; z-index: 50; height: 64px;
+      background: rgba(10, 22, 40, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(201, 168, 76, 0.1); display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px;
+    }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .page-title { font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
+    .breadcrumb { font-size: 0.78rem; color: var(--text-muted); }
+    .breadcrumb a { color: var(--gold); text-decoration: none; }
+
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .btn-secondary {
+      display: flex; align-items: center; gap: 8px; padding: 8px 16px;
+      background: transparent; border: 1px solid rgba(201, 168, 76, 0.3);
+      border-radius: 8px; color: var(--text-secondary); font-size: 0.8rem; font-weight: 500;
+      cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+    .btn-secondary:hover { background: rgba(201, 168, 76, 0.1); color: var(--gold); }
+    .btn-secondary svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    /* ==================== CONTENT ==================== */
+    .content { padding: 28px; max-width: 800px; }
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 { font-family: 'Cinzel', serif; font-size: 1.5rem; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+    .page-header p { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* ==================== FORM ==================== */
+    .card {
+      background: rgba(13, 27, 42, 0.6); backdrop-filter: blur(20px);
+      border: 1px solid rgba(201, 168, 76, 0.1); border-radius: 12px; padding: 28px;
+    }
+    .card-header {
+      padding-bottom: 20px; border-bottom: 1px solid rgba(201, 168, 76, 0.1);
+      margin-bottom: 24px;
+    }
+    .card-title { font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
+    .card-subtitle { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; }
+
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px; }
+    .form-group input, .form-group select {
+      width: 100%; padding: 12px 14px; background: rgba(10, 22, 40, 0.5);
+      border: 1px solid rgba(201, 168, 76, 0.15); border-radius: 8px;
+      color: var(--text-primary); font-size: 0.9rem; font-family: inherit;
+      transition: all 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus {
+      outline: none; border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.1);
+    }
+    .form-group input::placeholder { color: var(--text-dim); }
+    .form-group input:read-only { background: rgba(201, 168, 76, 0.05); cursor: not-allowed; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    .form-actions { display: flex; gap: 12px; margin-top: 28px; padding-top: 20px; border-top: 1px solid rgba(201, 168, 76, 0.1); }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px;
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold)); border: none;
+      border-radius: 8px; color: var(--navy-deep); font-size: 0.85rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(201, 168, 76, 0.3); }
+    .btn-primary svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .btn-cancel {
+      display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px;
+      background: transparent; border: 1px solid rgba(201, 168, 76, 0.2);
+      border-radius: 8px; color: var(--text-secondary); font-size: 0.85rem; font-weight: 500;
+      cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+    .btn-cancel:hover { background: rgba(201, 168, 76, 0.1); color: var(--text-primary); }
+
+    /* Alert */
+    .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 0.85rem; }
+    .alert-error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--error); }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+      .sidebar.open { transform: translateX(0); }
+      .main-content { margin-left: 0; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo-container">
+      <a href="/dashboard" class="logo">
+        <div class="logo-icon"><img src="/img/logo.png" alt="KINAL"></div>
+        <span class="logo-text">KINAL APP</span>
+      </a>
+    </div>
+    <nav>
+      <div class="nav-section">
+        <div class="nav-section-title">Principal</div>
+        <a href="/dashboard" class="nav-item">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg></span>
+          Dashboard
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Gestión</div>
+        <a href="/productos/dashboard" class="nav-item active">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span>
+          Productos
+        </a>
+        <a href="/clientes/dashboard" class="nav-item">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>
+          Clientes
+        </a>
+        <a href="/ventas/dashboard" class="nav-item">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></span>
+          Ventas
+        </a>
+        <a href="/usuarios/dashboard" class="nav-item">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+          Usuarios
+        </a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" th:text="${inicialesUsuario?:'U'}">U</div>
+        <div>
+          <div class="user-name" th:text="${nombreUsuario?:'Usuario'}">Usuario</div>
+          <div class="user-role" th:text="${rolUsuario?:'User'}">User</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <header class="top-header">
+      <div class="header-left">
+        <h1 class="page-title" th:text="${editar} ? 'Editar Producto' : 'Nuevo Producto'">Formulario</h1>
+        <span class="breadcrumb"><a href="/dashboard">Dashboard</a> / <a href="/productos/dashboard">Productos</a> / <span th:text="${editar} ? 'Editar' : 'Nuevo'">Nuevo</span></span>
+      </div>
+      <div class="header-right">
+        <a href="/productos" class="btn-secondary">
+          <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12,19 5,12 12,5"/></svg>
+          Volver a la Lista
+        </a>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="page-header">
+        <h1 th:text="${editar} ? 'Editar Producto' : 'Crear Nuevo Producto'">Formulario</h1>
+        <p th:text="${editar} ? 'Actualiza la información del producto seleccionado' : 'Completa los datos para registrar un nuevo producto en el inventario'"></p>
+      </div>
+
+      <div th:if="${param.error}" class="alert alert-error" th:text="${param.error}"></div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title" th:text="${editar} ? 'Información del Producto' : 'Datos del Producto'"></div>
+          <div class="card-subtitle">Todos los campos marcados son obligatorios</div>
+        </div>
+
+        <form th:action="${editar} ? @{/productos/actualizar/{id}(id=${producto.codigo_producto})} : @{/productos}" th:object="${producto}" method="post">
+          <div class="form-group" th:if="${editar}">
+            <label for="codigo">Código del Producto</label>
+            <input type="text" id="codigo" th:field="*{codigo_producto}" readonly>
+          </div>
+
+          <div class="form-group">
+            <label for="nombre">Nombre del Producto *</label>
+            <input type="text" id="nombre" th:field="*{nombre_producto}" placeholder="Ej: Laptop Dell XPS 15" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="precio">Precio (Q) *</label>
+              <input type="number" id="precio" th:field="*{precio}" step="0.01" min="0" placeholder="0.00" required>
+            </div>
+            <div class="form-group">
+              <label for="stock">Stock Disponible *</label>
+              <input type="number" id="stock" th:field="*{stock}" min="0" placeholder="0" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="estado">Estado del Producto *</label>
+            <select id="estado" th:field="*{estado}" required>
+              <option value="1">Activo - Visible en el sistema</option>
+              <option value="0">Inactivo - Oculto temporalmente</option>
+            </select>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">
+              <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
+              <span th:text="${editar} ? 'Guardar Cambios' : 'Crear Producto'"></span>
+            </button>
+            <a href="/productos" class="btn-cancel">Cancelar</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
