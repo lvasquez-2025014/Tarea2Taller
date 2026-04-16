@@ -2,75 +2,120 @@ package com.ludwingvasquez.kinalapp.controller;
 
 import com.ludwingvasquez.kinalapp.entity.Venta;
 import com.ludwingvasquez.kinalapp.service.IVentaService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpSession;
 import java.util.List;
-//
-@RestController
+
+@Controller
 @RequestMapping("/ventas")
 public class VentaController {
 
     private final IVentaService ventaService;
 
-    public VentaController(IVentaService ventaService){
+    public VentaController(IVentaService ventaService) {
         this.ventaService = ventaService;
     }
 
-    @GetMapping
-    public ResponseEntity<List<Venta>> listar(){
+    @ModelAttribute
+    public void agregarUsuarioAlModelo(Model model, HttpSession session) {
+        String nombreUsuario = (String) session.getAttribute("nombreUsuario");
+        String emailUsuario = (String) session.getAttribute("emailUsuario");
+        String rolUsuario = (String) session.getAttribute("rolUsuario");
+        
+        if (nombreUsuario != null) {
+            model.addAttribute("nombreUsuario", nombreUsuario);
+            model.addAttribute("emailUsuario", emailUsuario);
+            model.addAttribute("rolUsuario", rolUsuario != null ? rolUsuario : "Usuario");
+            model.addAttribute("inicialesUsuario", obtenerIniciales(nombreUsuario));
+        }
+    }
+    
+    private String obtenerIniciales(String nombre) {
+        if (nombre == null || nombre.isEmpty()) {
+            return "U";
+        }
+        String[] partes = nombre.split("[.\\s@]+");
+        if (partes.length >= 2) {
+            return (partes[0].substring(0, 1) + partes[partes.length - 1].substring(0, 1)).toUpperCase();
+        }
+        return nombre.substring(0, Math.min(2, nombre.length())).toUpperCase();
+    }
+
+    @GetMapping("/dashboard")
+    public String dashboard(Model model) {
         List<Venta> ventas = ventaService.listarTodos();
-        return ResponseEntity.ok(ventas);
+        model.addAttribute("ventas", ventas);
+        model.addAttribute("totalVentas", ventas.size());
+        return "ventas/dashboard";
+    }
+
+    @GetMapping
+    public String listar(Model model) {
+        List<Venta> ventas = ventaService.listarTodos();
+        model.addAttribute("ventas", ventas);
+        return "ventas/lista";
+    }
+
+    @GetMapping("/nuevo")
+    public String nuevo(Model model) {
+        model.addAttribute("venta", new Venta());
+        model.addAttribute("editar", false);
+        return "ventas/formulario";
     }
 
     @GetMapping("/{codigoVenta}")
-    public ResponseEntity<Venta> buscarCV(@PathVariable Long codigoVenta){
-        return ventaService.buscarCV(codigoVenta)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public String buscarCV(@PathVariable Long codigoVenta, Model model) {
+        Venta venta = ventaService.buscarCV(codigoVenta).orElse(null);
+        model.addAttribute("venta", venta);
+        return "ventas/detalle";
     }
 
     @PostMapping
-    public ResponseEntity<?> guardar(@RequestBody Venta venta){
+    public String guardar(@ModelAttribute Venta venta) {
         try {
-            Venta nuevaVenta = ventaService.guardar(venta);
-            return new ResponseEntity<>(nuevaVenta, HttpStatus.CREATED);
-        } catch(Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());
-        }
-    }
-
-    @DeleteMapping("/{codigoVenta}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long codigoVenta){
-        try {
-            if(!ventaService.existePorCV(codigoVenta)){
-                return ResponseEntity.notFound().build();
-            }
-            ventaService.eliminar(codigoVenta);
-            return ResponseEntity.noContent().build();
-        } catch(RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    @PutMapping("/{codigoVenta}")
-    public ResponseEntity<?> actualizar(@PathVariable Long codigoVenta, @RequestBody Venta venta){
-        try {
-            if(!ventaService.existePorCV(codigoVenta)){
-                return ResponseEntity.notFound().build();
-            }
-            Venta ventaActualizada = ventaService.actualizar(codigoVenta, venta);
-            return ResponseEntity.ok(ventaActualizada);
+            ventaService.guardar(venta);
+            return "redirect:/ventas";
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return "redirect:/ventas/nuevo?error=" + e.getMessage();
+        }
+    }
+
+    @GetMapping("/editar/{codigoVenta}")
+    public String editar(@PathVariable Long codigoVenta, Model model) {
+        Venta venta = ventaService.buscarCV(codigoVenta).orElse(null);
+        model.addAttribute("venta", venta);
+        model.addAttribute("editar", true);
+        return "ventas/formulario";
+    }
+
+    @PostMapping("/actualizar/{codigoVenta}")
+    public String actualizar(@PathVariable Long codigoVenta, @ModelAttribute Venta venta) {
+        try {
+            ventaService.actualizar(codigoVenta, venta);
+            return "redirect:/ventas";
+        } catch (Exception e) {
+            return "redirect:/ventas/editar/" + codigoVenta + "?error=" + e.getMessage();
+        }
+    }
+
+    @GetMapping("/eliminar/{codigoVenta}")
+    public String eliminar(@PathVariable Long codigoVenta) {
+        try {
+            ventaService.eliminar(codigoVenta);
+            return "redirect:/ventas";
+        } catch (RuntimeException e) {
+            return "redirect:/ventas?error=" + e.getMessage();
         }
     }
 
     @GetMapping("/activas")
-    public ResponseEntity<List<Venta>> listarActivas(){
+    public String listarActivas(Model model) {
         List<Venta> ventasActivas = ventaService.listarActivas();
-        return ResponseEntity.ok(ventasActivas);
+        model.addAttribute("ventas", ventasActivas);
+        model.addAttribute("filtro", "Activas");
+        return "ventas/lista";
     }
 }
