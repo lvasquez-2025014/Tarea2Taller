@@ -2,11 +2,15 @@ package com.ludwingvasquez.kinalapp.controller;
 
 import com.ludwingvasquez.kinalapp.entity.Producto;
 import com.ludwingvasquez.kinalapp.service.IProductoService;
+import com.ludwingvasquez.kinalapp.service.IUsuarioService;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.servlet.http.HttpSession;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 
 @Controller
@@ -14,21 +18,30 @@ import java.util.List;
 public class ProductoController {
 
     private final IProductoService productoService;
+    private final IUsuarioService usuarioService;
 
-    public ProductoController(IProductoService productoService) {
+    public ProductoController(IProductoService productoService, IUsuarioService usuarioService) {
         this.productoService = productoService;
+        this.usuarioService = usuarioService;
     }
 
     @ModelAttribute
-    public void agregarUsuarioAlModelo(Model model, HttpSession session) {
-        String nombreUsuario = (String) session.getAttribute("nombreUsuario");
-        String emailUsuario = (String) session.getAttribute("emailUsuario");
-        String rolUsuario = (String) session.getAttribute("rolUsuario");
-        
-        if (nombreUsuario != null) {
+    public void agregarUsuarioAlModelo(Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+            String nombreUsuario = auth.getName();
+            String rolUsuario = auth.getAuthorities().stream()
+                    .findFirst()
+                    .map(a -> a.getAuthority().replace("ROLE_", ""))
+                    .orElse("Usuario");
+            
+            String emailUsuario = usuarioService.buscarPorUsername(nombreUsuario)
+                    .map(u -> u.getEmail())
+                    .orElse("");
+            
             model.addAttribute("nombreUsuario", nombreUsuario);
             model.addAttribute("emailUsuario", emailUsuario);
-            model.addAttribute("rolUsuario", rolUsuario != null ? rolUsuario : "Usuario");
+            model.addAttribute("rolUsuario", rolUsuario);
             model.addAttribute("inicialesUsuario", obtenerIniciales(nombreUsuario));
         }
     }
@@ -109,5 +122,31 @@ public class ProductoController {
         } catch (RuntimeException e) {
             return "redirect:/productos?error=" + e.getMessage();
         }
+    }
+
+    // Endpoint para exportar productos a CSV 
+    @GetMapping("/exportar/csv")
+    public void exportarCSV(HttpServletResponse response) throws IOException {
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=productos.csv");
+        
+        List<Producto> productos = productoService.listarTodos();
+        
+        PrintWriter writer = response.getWriter();
+        // Encabezados CSV
+        writer.println("Codigo,Nombre,Precio,Stock,Estado");
+        
+        // Datos
+        for (Producto p : productos) {
+            String estado = p.getStock() > 0 ? "Disponible" : "Agotado";
+            writer.printf("%d,\"%s\",%.2f,%d,%s%n",
+                p.getCodigo_producto(),
+                p.getNombre_producto().replace("\"", "\"\""),
+                p.getPrecio(),
+                p.getStock(),
+                estado
+            );
+        }
+        writer.flush();
     }
 }
