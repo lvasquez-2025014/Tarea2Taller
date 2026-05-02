@@ -397,7 +397,8 @@
     }
 
     #login-toggle:checked ~ .form-card .panels-wrap .login-panel,
-    #signup-toggle:checked ~ .form-card .panels-wrap .signup-panel {
+    #signup-toggle:checked ~ .form-card .panels-wrap .signup-panel,
+    .panel.active {
       opacity: 1;
       visibility: visible;
       transform: translateY(0) scale(1);
@@ -871,4 +872,3 @@
     .btn-main:focus-visible, .btn-secondary:focus-visible { outline-offset: 3px; }
     .btn-social:focus-visible { outline-offset: 3px; }
     .check-row:focus-within .check-box { outline: 2px solid var(--gold); outline-offset: 2px; }
-  </style>
