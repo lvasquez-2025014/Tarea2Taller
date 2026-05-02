@@ -3,21 +3,24 @@ package com.ludwingvasquez.kinalapp.controller;
 import com.ludwingvasquez.kinalapp.entity.DetalleVenta;
 import com.ludwingvasquez.kinalapp.entity.Notificacion;
 import com.ludwingvasquez.kinalapp.entity.Producto;
+import com.ludwingvasquez.kinalapp.entity.Usuario;
 import com.ludwingvasquez.kinalapp.entity.Venta;
 import com.ludwingvasquez.kinalapp.service.IProductoService;
 import com.ludwingvasquez.kinalapp.service.IClienteService;
 import com.ludwingvasquez.kinalapp.service.IVentaService;
 import com.ludwingvasquez.kinalapp.service.IUsuarioService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-
-import jakarta.servlet.http.HttpSession;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Controller
@@ -37,23 +40,27 @@ public class HomeController {
     }
 
     @GetMapping("/dashboard")
-    public String dashboard(Model model, HttpSession session) {
-        // Recuperar usuario de la sesión
-        String nombreUsuario = (String) session.getAttribute("nombreUsuario");
-        String emailUsuario = (String) session.getAttribute("emailUsuario");
-        String rolUsuario = (String) session.getAttribute("rolUsuario");
+    public String dashboard(Model model, @AuthenticationPrincipal UserDetails userDetails,
+                           @RequestParam(name = "periodo", required = false, defaultValue = "mensual") String periodo) {
+        // Usar Spring Security para obtener el usuario autenticado
+        String nombreUsuario = userDetails != null ? userDetails.getUsername() : "Usuario";
+        String rolUsuario = userDetails != null ? 
+            userDetails.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "") : "USER";
         
-        // Si no hay usuario en sesión, redirigir al login
-        if (nombreUsuario == null) {
-            return "redirect:/login";
-        }
+        // Buscar email del usuario en la base de datos
+        Optional<Usuario> usuarioOpt = usuarioService.buscarPorUsername(nombreUsuario);
+        String emailUsuario = usuarioOpt.map(Usuario::getEmail).orElse("");
         
         // Agregar usuario al modelo
         model.addAttribute("nombreUsuario", nombreUsuario);
         model.addAttribute("emailUsuario", emailUsuario);
-        model.addAttribute("rolUsuario", rolUsuario != null ? rolUsuario : "Usuario");
+        model.addAttribute("rolUsuario", rolUsuario);
         model.addAttribute("inicialesUsuario", obtenerIniciales(nombreUsuario));
-        // Estadísticas generales
+        
+        // Agregar periodo seleccionado
+        model.addAttribute("periodoSeleccionado", periodo);
+        
+        // Estadísticas generales (siempre se muestran todas, sin filtrar por periodo)
         long totalProductos = productoService.listarTodos().size();
         long totalClientes = clienteService.listarTodos().size();
         long totalVentas = ventaService.listarTodos().size();
@@ -146,6 +153,13 @@ public class HomeController {
         model.addAttribute("ventasRecientes", ventas.size() > 5 ? ventas.subList(0, 5) : ventas);
         model.addAttribute("notificaciones", notificaciones);
         model.addAttribute("totalNotificaciones", notificaciones.size());
+        
+        // Usuarios recientes (últimos 5 registrados, excluyendo admin) - datos reales
+        List<Usuario> usuariosRecientes = usuarioService.listarTodos().stream()
+                .filter(u -> !"admin".equalsIgnoreCase(u.getUsername()))
+                .limit(5)
+                .collect(Collectors.toList());
+        model.addAttribute("usuariosRecientes", usuariosRecientes);
 
         return "dashboard";
     }
@@ -155,10 +169,9 @@ public class HomeController {
         return "redirect:/dashboard";
     }
 
-    @GetMapping("/logout")
-    public String logout(HttpSession session) {
-        session.invalidate();
-        return "redirect:/login";
+    @GetMapping("/logout-legacy")
+    public String logout() {
+        return "redirect:/logout";
     }
     
     private String obtenerIniciales(String nombre) {

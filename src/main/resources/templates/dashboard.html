@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -836,10 +836,13 @@
         </div>
         <div class="nav-section">
           <div class="nav-section-title">Gestión</div>
-          <a th:href="@{/usuarios/dashboard}" class="nav-item" style="text-decoration:none;">
-            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
-            Usuarios
-          </a>
+          <!-- Usuarios: Solo ADMIN puede ver/gestionar -->
+          <th:block sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/usuarios/dashboard}" class="nav-item" style="text-decoration:none;">
+              <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+              Usuarios
+            </a>
+          </th:block>
           <label for="view-analiticas" class="nav-item" data-target="analiticas">
             <span class="nav-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
             Analíticas
@@ -939,8 +942,8 @@
               <div class="stat-label">Ingresos Totales</div>
               <div class="stat-bar"><div class="stat-bar-fill flame" style="width:65%"></div></div>
             </div>
-            <!-- Usuarios -->
-            <div class="stat-card">
+            <!-- Usuarios - Solo visible para ADMIN -->
+            <div sec:authorize="hasRole('ADMIN')" class="stat-card">
               <div class="stat-header">
                 <div class="stat-icon green"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
                 <span class="stat-trend up" th:if="${totalUsuarios > 0}">▲ <span th:text="${totalUsuarios}">0</span> registrados</span>
@@ -955,7 +958,11 @@
             <div class="card">
               <div class="card-header">
                 <div><div class="card-title">Resumen de Ingresos</div><div class="card-subtitle">Comparativa mensual 2024</div></div>
-                <div class="card-actions"><button class="card-action-btn active">Mensual</button><button class="card-action-btn">Semanal</button></div>
+                <div class="card-actions">
+                  <a th:href="@{/dashboard(periodo='mensual')}" th:class="'card-action-btn ' + (${periodoSeleccionado == 'mensual' or periodoSeleccionado == null} ? 'active' : '')">Mensual</a>
+                  <a th:href="@{/dashboard(periodo='semanal')}" th:class="'card-action-btn ' + (${periodoSeleccionado == 'semanal'} ? 'active' : '')">Semanal</a>
+                  <a th:href="@{/dashboard(periodo='anual')}" th:class="'card-action-btn ' + (${periodoSeleccionado == 'anual'} ? 'active' : '')">Anual</a>
+                </div>
               </div>
               <div class="card-body">
                 <div class="chart-container">
@@ -972,65 +979,92 @@
                 </div>
               </div>
             </div>
-            <div class="card">
-              <div class="card-header"><div><div class="card-title">Visitas por Día</div><div class="card-subtitle">Última semana</div></div></div>
-              <div class="card-body">
-                <div class="bar-chart">
-                  <div class="bar-group"><div class="bar-value">420</div><div class="bar gold-bar" style="height:55%"></div><div class="bar-label">Lun</div></div>
-                  <div class="bar-group"><div class="bar-value">680</div><div class="bar flame-bar" style="height:85%"></div><div class="bar-label">Mar</div></div>
-                  <div class="bar-group"><div class="bar-value">350</div><div class="bar gold-bar" style="height:42%"></div><div class="bar-label">Mié</div></div>
-                  <div class="bar-group"><div class="bar-value">890</div><div class="bar flame-bar" style="height:100%"></div><div class="bar-label">Jue</div></div>
-                  <div class="bar-group"><div class="bar-value">520</div><div class="bar gold-bar" style="height:62%"></div><div class="bar-label">Vie</div></div>
-                  <div class="bar-group"><div class="bar-value">730</div><div class="bar flame-bar" style="height:88%"></div><div class="bar-label">Sáb</div></div>
-                  <div class="bar-group"><div class="bar-value">290</div><div class="bar gold-bar" style="height:35%"></div><div class="bar-label">Dom</div></div>
-                </div>
+            <!-- Gráfico de Visitas - Oculto hasta tener datos reales de tráfico -->
+            <div class="card" style="opacity: 0.6;">
+              <div class="card-header"><div><div class="card-title">Visitas por Día</div><div class="card-subtitle">Próximamente</div></div></div>
+              <div class="card-body" style="display: flex; align-items: center; justify-content: center; min-height: 200px;">
+                <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center;">
+                  Estadísticas de tráfico no disponibles<br>
+                  <small>Se mostrarán cuando haya datos suficientes</small>
+                </p>
               </div>
             </div>
           </div>
 
-          <div class="full-width-section">
+          <!-- Usuarios Recientes - Solo visible para ADMIN - DATOS REALES -->
+          <div sec:authorize="hasRole('ADMIN')" class="full-width-section" th:if="${usuariosRecientes != null && !usuariosRecientes.isEmpty()}">
             <div class="card">
-              <div class="card-header"><div><div class="card-title">Usuarios Recientes</div><div class="card-subtitle">Últimas cuentas registradas</div></div><div class="card-actions"><button class="card-action-btn">Exportar</button><button class="card-action-btn active">Ver todo</button></div></div>
+              <div class="card-header"><div><div class="card-title">Usuarios Recientes</div><div class="card-subtitle">Últimas cuentas registradas</div></div><div class="card-actions"><a th:href="@{/usuarios}" class="card-action-btn active">Ver todo</a></div></div>
               <div class="card-body" style="padding:0;">
                 <div class="table-wrapper">
                   <table class="data-table">
-                    <thead><tr><th>Usuario</th><th>Estado</th><th>Plan</th><th>Progreso</th><th>Registro</th></tr></thead>
+                    <thead><tr><th>Usuario</th><th>Email</th><th>Rol</th><th>Estado</th></tr></thead>
                     <tbody>
-                      <tr><td><div class="table-user"><div class="table-avatar" style="background:linear-gradient(135deg,var(--gold-dark),var(--gold));">AL</div><div class="table-user-info"><div class="name">Ana López</div><div class="email">ana@ejemplo.com</div></div></div></td><td><span class="status-badge active"><span class="status-dot-sm"></span>Activo</span></td><td style="color:var(--gold);font-weight:600;">Premium</td><td><div class="progress-mini"><div class="progress-mini-fill" style="width:85%;background:var(--gold);"></div></div>85%</td><td style="font-size:0.78rem;color:var(--text-muted);">Hace 2 min</td></tr>
-                      <tr><td><div class="table-user"><div class="table-avatar" style="background:linear-gradient(135deg,var(--flame-dark),var(--flame));">MR</div><div class="table-user-info"><div class="name">Miguel R.</div><div class="email">miguel@ejemplo.com</div></div></div></td><td><span class="status-badge active"><span class="status-dot-sm"></span>Activo</span></td><td style="color:var(--text-secondary);font-weight:600;">Básico</td><td><div class="progress-mini"><div class="progress-mini-fill" style="width:42%;background:var(--flame);"></div></div>42%</td><td style="font-size:0.78rem;color:var(--text-muted);">Hace 15 min</td></tr>
-                      <tr><td><div class="table-user"><div class="table-avatar" style="background:linear-gradient(135deg,#16a34a,var(--success));">LG</div><div class="table-user-info"><div class="name">Laura García</div><div class="email">laura@ejemplo.com</div></div></div></td><td><span class="status-badge pending"><span class="status-dot-sm"></span>Pendiente</span></td><td style="color:var(--gold);font-weight:600;">Premium</td><td><div class="progress-mini"><div class="progress-mini-fill" style="width:68%;background:var(--warning);"></div></div>68%</td><td style="font-size:0.78rem;color:var(--text-muted);">Hace 1 hora</td></tr>
-                      <tr><td><div class="table-user"><div class="table-avatar" style="background:linear-gradient(135deg,#0284c7,var(--info));">JP</div><div class="table-user-info"><div class="name">Javier Pérez</div><div class="email">javier@ejemplo.com</div></div></div></td><td><span class="status-badge inactive"><span class="status-dot-sm"></span>Inactivo</span></td><td style="color:var(--text-secondary);font-weight:600;">Básico</td><td><div class="progress-mini"><div class="progress-mini-fill" style="width:15%;background:var(--error);"></div></div>15%</td><td style="font-size:0.78rem;color:var(--text-muted);">Hace 3 horas</td></tr>
+                      <tr th:each="u : ${usuariosRecientes}">
+                        <td>
+                          <div class="table-user">
+                            <div class="table-avatar" th:style="'background: linear-gradient(135deg, var(--gold-dark), var(--gold));'" th:text="${#strings.substring(u.username, 0, 2).toUpperCase()}">LI</div>
+                            <div class="table-user-info">
+                              <div class="name" th:text="${u.username}">Usuario</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td th:text="${u.email}">email@ejemplo.com</td>
+                        <td th:text="${u.rol}">USER</td>
+                        <td>
+                          <span th:if="${u.estado == 1}" class="status-badge active"><span class="status-dot-sm"></span>Activo</span>
+                          <span th:if="${u.estado != 1}" class="status-badge inactive"><span class="status-dot-sm"></span>Inactivo</span>
+                        </td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
               </div>
             </div>
           </div>
+          
+          <!-- Mensaje cuando no hay usuarios -->
+          <div sec:authorize="hasRole('ADMIN')" class="full-width-section" th:if="${usuariosRecientes == null || usuariosRecientes.isEmpty()}">
+            <div class="card" style="opacity: 0.7;">
+              <div class="card-header"><div><div class="card-title">Usuarios Recientes</div><div class="card-subtitle">No hay usuarios registrados</div></div></div>
+              <div class="card-body" style="padding: 30px; text-align: center;">
+                <p style="color: var(--text-muted);">Aún no hay usuarios en el sistema. Los usuarios registrados aparecerán aquí.</p>
+              </div>
+            </div>
+          </div>
 
           <div class="bottom-grid">
-            <div class="card">
+            <!-- Distribución de Planes - Oculto hasta tener datos reales -->
+            <div class="card" style="opacity: 0.6;">
               <div class="card-header"><div><div class="card-title">Distribución</div><div class="card-subtitle">Planes activos</div></div></div>
+              <div class="card-body" style="display: flex; align-items: center; justify-content: center; min-height: 200px;">
+                <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center;">
+                  Análisis de distribución no disponible<br>
+                  <small>Requiere datos históricos de usuarios</small>
+                </p>
+              </div>
+            </div>
+            <!-- Actividad Reciente - Mostrar solo si hay notificaciones -->
+            <div class="card" th:if="${notificaciones != null && !notificaciones.isEmpty()}">
+              <div class="card-header"><div><div class="card-title">Actividad Reciente</div><div class="card-subtitle">Últimas acciones del sistema</div></div></div>
               <div class="card-body">
-                <div class="donut-container">
-                  <div class="donut-chart"><svg viewBox="0 0 120 120"><circle class="donut-track" cx="60" cy="60" r="50"/><circle class="donut-segment" cx="60" cy="60" r="50" stroke="var(--gold)" stroke-dasharray="125 314"/><circle class="donut-segment" cx="60" cy="60" r="50" stroke="var(--flame)" stroke-dasharray="94 314" stroke-dashoffset="-125"/><circle class="donut-segment" cx="60" cy="60" r="50" stroke="var(--success)" stroke-dasharray="63 314" stroke-dashoffset="-219"/><circle class="donut-segment" cx="60" cy="60" r="50" stroke="var(--info)" stroke-dasharray="32 314" stroke-dashoffset="-282"/></svg><div class="donut-center"><div class="donut-value">2.8K</div><div class="donut-label-text">Total</div></div></div>
-                  <div class="donut-legend">
-                    <div class="legend-item"><span class="legend-dot" style="background:var(--gold);"></span>Premium<span class="legend-value">40%</span></div>
-                    <div class="legend-item"><span class="legend-dot" style="background:var(--flame);"></span>Enterprise<span class="legend-value">30%</span></div>
-                    <div class="legend-item"><span class="legend-dot" style="background:var(--success);"></span>Básico<span class="legend-value">20%</span></div>
-                    <div class="legend-item"><span class="legend-dot" style="background:var(--info);"></span>Trial<span class="legend-value">10%</span></div>
+                <div class="activity-list">
+                  <div th:each="notif : ${notificaciones}" class="activity-item">
+                    <div class="activity-dot" th:classappend="${notif.tipoColor}"></div>
+                    <div class="activity-content">
+                      <div class="activity-text" th:text="${notif.titulo}">Título</div>
+                      <div class="activity-time" th:text="${notif.mensaje}">Mensaje</div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div class="card">
-              <div class="card-header"><div><div class="card-title">Actividad Reciente</div><div class="card-subtitle">Últimas acciones</div></div></div>
-              <div class="card-body">
-                <div class="activity-list">
-                  <div class="activity-item"><div class="activity-dot gold"></div><div class="activity-content"><div class="activity-text"><strong>Ana López</strong> actualizó su perfil</div><div class="activity-time">Hace 2 minutos</div></div></div>
-                  <div class="activity-item"><div class="activity-dot green"></div><div class="activity-content"><div class="activity-text">Nueva suscripción <strong>Premium</strong> creada</div><div class="activity-time">Hace 15 minutos</div></div></div>
-                  <div class="activity-item"><div class="activity-dot flame"></div><div class="activity-content"><div class="activity-text"><strong>Miguel R.</strong> reportó un incidente</div><div class="activity-time">Hace 1 hora</div></div></div>
-                  <div class="activity-item"><div class="activity-dot blue"></div><div class="activity-content"><div class="activity-text">Sistema actualizado a <strong>v2.1.0</strong></div><div class="activity-time">Hace 3 horas</div></div></div>
-                </div>
+            
+            <!-- Mensaje cuando no hay actividad -->
+            <div class="card" th:if="${notificaciones == null || notificaciones.isEmpty()}" style="opacity: 0.6;">
+              <div class="card-header"><div><div class="card-title">Actividad Reciente</div><div class="card-subtitle">Sin actividad reciente</div></div></div>
+              <div class="card-body" style="padding: 30px; text-align: center;">
+                <p style="color: var(--text-muted); font-size: 0.85rem;">No hay actividad reciente para mostrar</p>
               </div>
             </div>
             <div class="card">
@@ -1055,7 +1089,8 @@
                     </div>
                     <span class="quick-action-label">Dashboard de Ventas</span>
                   </a>
-                  <a th:href="@{/usuarios/dashboard}" class="quick-action-btn">
+                  <!-- Dashboard de Usuarios: Solo para ADMIN -->
+                  <a sec:authorize="hasRole('ADMIN')" th:href="@{/usuarios/dashboard}" class="quick-action-btn">
                     <div class="quick-action-icon" style="background:linear-gradient(135deg,var(--purple),#a78bfa);">
                       <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     </div>
