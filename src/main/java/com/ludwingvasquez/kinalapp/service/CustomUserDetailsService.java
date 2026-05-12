@@ -25,41 +25,33 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        System.out.println("=== AUTENTICACIÓN: Buscando usuario: '" + username + "' ===");
-        
         Optional<Usuario> usuarioOpt = usuarioRepository.findByUsername(username);
 
         if (usuarioOpt.isEmpty()) {
-            System.out.println("=== AUTENTICACIÓN: Usuario no encontrado: '" + username + "' ===");
             throw new UsernameNotFoundException("Usuario no encontrado: " + username);
         }
 
         Usuario usuario = usuarioOpt.get();
 
-        // Verificar que el usuario esté activo (estado = 1)
         if (usuario.getEstado() == null || usuario.getEstado() != 1) {
             throw new UsernameNotFoundException("Usuario inactivo o no válido: " + username);
         }
 
-        // Obtener el rol del usuario y convertirlo a autoridad de Spring Security
         String rol = usuario.getRol();
         if (rol == null || rol.isEmpty()) {
-            rol = "USER"; // Rol por defecto
+            rol = "USER";
         }
 
-        // Spring Security requiere que los roles tengan el prefijo "ROLE_"
         Collection<? extends GrantedAuthority> authorities = 
             Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + rol.toUpperCase()));
 
-        System.out.println("=== AUTENTICACIÓN: Usuario autenticado exitosamente: '" + username + "' con rol: " + rol + " ===");
-        
         return new User(
             usuario.getUsername(),
             usuario.getPassword(),
-            true,  // enabled
-            true,  // accountNonExpired
-            true,  // credentialsNonExpired
-            true,  // accountNonLocked
+            true,
+            true,
+            true,
+            true,
             authorities
         );
     }

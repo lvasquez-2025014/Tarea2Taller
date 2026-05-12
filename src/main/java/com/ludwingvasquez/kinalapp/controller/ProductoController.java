@@ -124,7 +124,6 @@ public class ProductoController {
         }
     }
 
-    // Endpoint para exportar productos a CSV 
     @GetMapping("/exportar/csv")
     public void exportarCSV(HttpServletResponse response) throws IOException {
         response.setContentType("text/csv");
@@ -133,10 +132,8 @@ public class ProductoController {
         List<Producto> productos = productoService.listarTodos();
         
         PrintWriter writer = response.getWriter();
-        // Encabezados CSV
         writer.println("Codigo,Nombre,Precio,Stock,Estado");
         
-        // Datos
         for (Producto p : productos) {
             String estado = p.getStock() > 0 ? "Disponible" : "Agotado";
             writer.printf("%d,\"%s\",%.2f,%d,%s%n",

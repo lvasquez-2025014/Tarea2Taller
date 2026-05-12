@@ -42,31 +42,25 @@ public class HomeController {
     @GetMapping("/dashboard")
     public String dashboard(Model model, @AuthenticationPrincipal UserDetails userDetails,
                            @RequestParam(name = "periodo", required = false, defaultValue = "mensual") String periodo) {
-        // Usar Spring Security para obtener el usuario autenticado
         String nombreUsuario = userDetails != null ? userDetails.getUsername() : "Usuario";
         String rolUsuario = userDetails != null ? 
             userDetails.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "") : "USER";
         
-        // Buscar email del usuario en la base de datos
         Optional<Usuario> usuarioOpt = usuarioService.buscarPorUsername(nombreUsuario);
         String emailUsuario = usuarioOpt.map(Usuario::getEmail).orElse("");
         
-        // Agregar usuario al modelo
         model.addAttribute("nombreUsuario", nombreUsuario);
         model.addAttribute("emailUsuario", emailUsuario);
         model.addAttribute("rolUsuario", rolUsuario);
         model.addAttribute("inicialesUsuario", obtenerIniciales(nombreUsuario));
         
-        // Agregar periodo seleccionado
         model.addAttribute("periodoSeleccionado", periodo);
         
-        // Estadísticas generales (siempre se muestran todas, sin filtrar por periodo)
         long totalProductos = productoService.listarTodos().size();
         long totalClientes = clienteService.listarTodos().size();
         long totalVentas = ventaService.listarTodos().size();
         long totalUsuarios = usuarioService.listarTodos().size();
 
-        // Calcular ingresos totales sumando los detalles de cada venta
         List<Venta> ventas = ventaService.listarTodos();
         BigDecimal ingresosTotales = BigDecimal.ZERO;
         for (Venta venta : ventas) {
@@ -79,19 +73,15 @@ public class HomeController {
             }
         }
 
-        // Productos con stock bajo 
         long productosBajoStock = productoService.listarTodos().stream()
                 .filter(p -> p.getStock() < 10)
                 .count();
 
-        // Clientes activos
         long clientesActivos = clienteService.listarPorEstado(1).size();
 
-        // Generar notificaciones dinámicas
         List<Notificacion> notificaciones = new ArrayList<>();
         long notifId = 1;
 
-        // Notificaciones de productos con stock bajo
         List<Producto> productosBajo = productoService.listarTodos().stream()
                 .filter(p -> p.getStock() < 10)
                 .limit(3)
@@ -105,7 +95,6 @@ public class HomeController {
             ));
         }
 
-        // Notificación de ventas recientes
         if (!ventas.isEmpty()) {
             Venta ultimaVenta = ventas.get(ventas.size() - 1);
             BigDecimal totalVenta = BigDecimal.ZERO;
@@ -123,7 +112,6 @@ public class HomeController {
             ));
         }
 
-        // Notificación de total de ingresos
         if (ingresosTotales.compareTo(BigDecimal.ZERO) > 0) {
             notificaciones.add(new Notificacion(
                     notifId++, "info",
@@ -133,7 +121,6 @@ public class HomeController {
             ));
         }
 
-        // Alerta si no hay clientes
         if (totalClientes == 0) {
             notificaciones.add(new Notificacion(
                     notifId++, "alert",
@@ -154,7 +141,6 @@ public class HomeController {
         model.addAttribute("notificaciones", notificaciones);
         model.addAttribute("totalNotificaciones", notificaciones.size());
         
-        // Usuarios recientes (últimos 5 registrados, excluyendo admin) - datos reales
         List<Usuario> usuariosRecientes = usuarioService.listarTodos().stream()
                 .filter(u -> !"admin".equalsIgnoreCase(u.getUsername()))
                 .limit(5)

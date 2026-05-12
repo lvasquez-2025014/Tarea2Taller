@@ -18,7 +18,6 @@ public class LoginController {
     private final IUsuarioService usuarioService;
     private final PasswordEncoder passwordEncoder;
 
-    // Lista de roles disponibles para el registro
     private static final List<String> ROLES_PERMITIDOS = Arrays.asList("USER", "CLIENTE");
 
     public LoginController(IUsuarioService usuarioService, PasswordEncoder passwordEncoder) {
@@ -36,7 +35,6 @@ public class LoginController {
                         @RequestParam(value = "logout", required = false) String logout,
                         Model model,
                         @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
-        // Si el usuario ya está autenticado, redirigir al dashboard
         if (userDetails != null) {
             return "redirect:/dashboard";
         }
@@ -52,7 +50,6 @@ public class LoginController {
 
     @GetMapping("/registro")
     public String mostrarRegistro(Model model) {
-        // Agregar los roles permitidos para que el usuario elija
         model.addAttribute("roles", ROLES_PERMITIDOS);
         return "registro";
     }
@@ -65,23 +62,18 @@ public class LoginController {
                            Model model,
                            RedirectAttributes redirectAttrs) {
 
-        // Validar que el rol sea uno de los permitidos
         if (!ROLES_PERMITIDOS.contains(rol.toUpperCase())) {
-            rol = "USER"; // Default si no es válido
+            rol = "USER";
         }
 
-        // Verifica si el usuario ya existe
         Optional<Usuario> existente = usuarioService.buscarPorUsername(username);
         if (existente.isPresent()) {
             model.addAttribute("error", "El usuario ya existe en la base de datos");
-            model.addAttribute("roles", ROLES_PERMITIDOS);
             return "registro";
         }
 
-        // Validaciones
         if (password.length() < 8) {
             model.addAttribute("error", "La contraseña debe tener al menos 8 caracteres");
-            model.addAttribute("roles", ROLES_PERMITIDOS);
             return "registro";
         }
 
@@ -91,18 +83,15 @@ public class LoginController {
             return "registro";
         }
 
-        // Guardar en base de datos con contraseña encriptada
         try {
             Usuario nuevoUsuario = new Usuario();
             nuevoUsuario.setUsername(username);
-            // Encriptar la contraseña con BCrypt
             nuevoUsuario.setPassword(passwordEncoder.encode(password));
             nuevoUsuario.setEmail(email);
             nuevoUsuario.setRol(rol.toUpperCase());
             nuevoUsuario.setEstado(1L);
             usuarioService.guardar(nuevoUsuario);
 
-            // Mensaje de éxito con flash attribute
             redirectAttrs.addFlashAttribute("toastExito", "¡FELICIDADES! TE HAS REGISTRADO EXITOSAMENTE");
             redirectAttrs.addFlashAttribute("toastTipo", "registro");
             return "redirect:/login";

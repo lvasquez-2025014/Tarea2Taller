@@ -24,8 +24,6 @@ public class Notificacion {
         this.icono = icono;
         this.color = color;
     }
-
-    // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -49,4 +47,5 @@ public class Notificacion {
 
     public String getColor() { return color; }
     public void setColor(String color) { this.color = color; }
+
 }

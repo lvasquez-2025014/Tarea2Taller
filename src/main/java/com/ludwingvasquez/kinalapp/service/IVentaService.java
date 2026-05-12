@@ -13,7 +13,6 @@ public interface IVentaService {
     boolean existePorCV(Long codigoVenta);
     List<Venta> listarActivas();
 
-    // Métodos de estadísticas
     long contarVentasPorCliente(String dpiCliente);
     double calcularTotalVentasPorCliente(String dpiCliente);
     int contarTotalVentas();

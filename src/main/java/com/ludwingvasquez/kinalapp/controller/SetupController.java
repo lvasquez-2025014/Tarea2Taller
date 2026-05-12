@@ -41,7 +41,6 @@ public class SetupController {
             return "redirect:/login";
         }
 
-        // Validaciones
         if (username.length() < 3) {
             model.addAttribute("error", "El nombre de usuario debe tener al menos 3 caracteres");
             return "setup";

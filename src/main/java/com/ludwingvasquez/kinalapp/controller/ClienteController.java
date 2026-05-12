@@ -62,15 +62,12 @@ public class ClienteController {
     public String dashboard(Model model) {
         List<Cliente> clientes = clienteService.listarTodos();
         
-        // Filtrar clientes activos 
         long clientesActivos = clientes.stream()
             .filter(c -> c.getEstado() != null && c.getEstado() == 1)
             .count();
         
-        // Calcular nuevos clientes del mes 
         long nuevosClientesMes = clientesActivos;
         
-        // Estadísticas de ventas reales desde el servicio
         int totalVentasClientes = ventaService.contarTotalVentas();
         double ingresosClientes = ventaService.calcularIngresosTotales();
         
