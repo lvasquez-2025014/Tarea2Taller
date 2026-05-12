@@ -434,9 +434,9 @@
                 <div class="card-subtitle">Últimas transacciones registradas</div>
               </div>
               <div class="card-actions">
-                <button class="card-action-btn">Hoy</button>
-                <button class="card-action-btn active">Semana</button>
-                <button class="card-action-btn">Mes</button>
+                <a th:href="@{/ventas/dashboard(periodo='hoy')}" th:class="'card-action-btn ' + (${periodoSeleccionado == 'hoy'} ? 'active' : '')">Hoy</a>
+                <a th:href="@{/ventas/dashboard(periodo='semana')}" th:class="'card-action-btn ' + (${periodoSeleccionado == 'semana' or periodoSeleccionado == null} ? 'active' : '')">Semana</a>
+                <a th:href="@{/ventas/dashboard(periodo='mes')}" th:class="'card-action-btn ' + (${periodoSeleccionado == 'mes'} ? 'active' : '')">Mes</a>
               </div>
             </div>
             <div class="card-body" style="padding:0;">
@@ -525,9 +525,9 @@
                 <div class="card-subtitle">Ventas diarias - Últimos 7 días</div>
               </div>
               <div class="card-actions">
-                <button class="card-action-btn">Semana</button>
-                <button class="card-action-btn active">Mes</button>
-                <button class="card-action-btn">Año</button>
+                <a th:href="@{/ventas/dashboard(tendencia='semana')}" th:class="'card-action-btn ' + (${tendenciaSeleccionada == 'semana'} ? 'active' : '')">Semana</a>
+                <a th:href="@{/ventas/dashboard(tendencia='mes')}" th:class="'card-action-btn ' + (${tendenciaSeleccionada == 'mes' or tendenciaSeleccionada == null} ? 'active' : '')">Mes</a>
+                <a th:href="@{/ventas/dashboard(tendencia='anio')}" th:class="'card-action-btn ' + (${tendenciaSeleccionada == 'anio'} ? 'active' : '')">Año</a>
               </div>
             </div>
             <div class="card-body">

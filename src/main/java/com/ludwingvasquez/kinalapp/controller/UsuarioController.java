@@ -2,6 +2,8 @@ package com.ludwingvasquez.kinalapp.controller;
 
 import com.ludwingvasquez.kinalapp.entity.Usuario;
 import com.ludwingvasquez.kinalapp.service.IUsuarioService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -44,8 +46,17 @@ public class UsuarioController {
         return nombre.substring(0, Math.min(2, nombre.length())).toUpperCase();
     }
 
+    private boolean esAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+    }
+
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
+        if (!esAdmin()) {
+            return "acceso-denegado";
+        }
         List<Usuario> usuarios = usuarioService.listarTodos();
         model.addAttribute("usuarios", usuarios);
         model.addAttribute("totalUsuarios", usuarios.size());
@@ -54,6 +65,9 @@ public class UsuarioController {
 
     @GetMapping
     public String listar(Model model) {
+        if (!esAdmin()) {
+            return "acceso-denegado";
+        }
         List<Usuario> usuarios = usuarioService.listarTodos();
         model.addAttribute("usuarios", usuarios);
         return "usuarios/lista";
@@ -61,6 +75,9 @@ public class UsuarioController {
 
     @GetMapping("/nuevo")
     public String nuevo(Model model) {
+        if (!esAdmin()) {
+            return "acceso-denegado";
+        }
         model.addAttribute("usuario", new Usuario());
         model.addAttribute("editar", false);
         return "usuarios/formulario";
@@ -68,6 +85,9 @@ public class UsuarioController {
 
     @GetMapping("/{codigo_usuario}")
     public String buscarPorId(@PathVariable Long codigo_usuario, Model model) {
+        if (!esAdmin()) {
+            return "acceso-denegado";
+        }
         Usuario usuario = usuarioService.buscarPorId(codigo_usuario).orElse(null);
         model.addAttribute("usuario", usuario);
         return "usuarios/detalle";
@@ -75,6 +95,9 @@ public class UsuarioController {
 
     @PostMapping
     public String guardar(@ModelAttribute Usuario usuario) {
+        if (!esAdmin()) {
+            return "acceso-denegado";
+        }
         try {
             usuarioService.guardar(usuario);
             return "redirect:/usuarios";
@@ -85,6 +108,9 @@ public class UsuarioController {
 
     @GetMapping("/editar/{codigo_usuario}")
     public String editar(@PathVariable Long codigo_usuario, Model model) {
+        if (!esAdmin()) {
+            return "acceso-denegado";
+        }
         Usuario usuario = usuarioService.buscarPorId(codigo_usuario).orElse(null);
         model.addAttribute("usuario", usuario);
         model.addAttribute("editar", true);
@@ -93,6 +119,9 @@ public class UsuarioController {
 
     @PostMapping("/actualizar/{codigo_usuario}")
     public String actualizar(@PathVariable Long codigo_usuario, @ModelAttribute Usuario usuario) {
+        if (!esAdmin()) {
+            return "acceso-denegado";
+        }
         try {
             usuarioService.actualizar(codigo_usuario, usuario);
             return "redirect:/usuarios";
@@ -103,6 +132,9 @@ public class UsuarioController {
 
     @GetMapping("/eliminar/{codigo_usuario}")
     public String eliminar(@PathVariable Long codigo_usuario) {
+        if (!esAdmin()) {
+            return "acceso-denegado";
+        }
         try {
             usuarioService.eliminar(codigo_usuario);
             return "redirect:/usuarios";
