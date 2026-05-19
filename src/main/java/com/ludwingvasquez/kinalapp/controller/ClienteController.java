@@ -2,12 +2,14 @@ package com.ludwingvasquez.kinalapp.controller;
 
 import com.ludwingvasquez.kinalapp.entity.Cliente;
 import com.ludwingvasquez.kinalapp.service.IClienteService;
+import com.ludwingvasquez.kinalapp.service.IUsuarioService;
 import com.ludwingvasquez.kinalapp.service.IVentaService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpSession;
 import java.util.List;
 
 @Controller
@@ -16,22 +18,31 @@ public class ClienteController {
 
     private final IClienteService clienteService;
     private final IVentaService ventaService;
+    private final IUsuarioService usuarioService;
 
-    public ClienteController(IClienteService clienteService, IVentaService ventaService) {
+    public ClienteController(IClienteService clienteService, IVentaService ventaService, IUsuarioService usuarioService) {
         this.clienteService = clienteService;
         this.ventaService = ventaService;
+        this.usuarioService = usuarioService;
     }
 
     @ModelAttribute
-    public void agregarUsuarioAlModelo(Model model, HttpSession session) {
-        String nombreUsuario = (String) session.getAttribute("nombreUsuario");
-        String emailUsuario = (String) session.getAttribute("emailUsuario");
-        String rolUsuario = (String) session.getAttribute("rolUsuario");
-        
-        if (nombreUsuario != null) {
+    public void agregarUsuarioAlModelo(Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+            String nombreUsuario = auth.getName();
+            String rolUsuario = auth.getAuthorities().stream()
+                    .findFirst()
+                    .map(a -> a.getAuthority().replace("ROLE_", ""))
+                    .orElse("Usuario");
+            
+            String emailUsuario = usuarioService.buscarPorUsername(nombreUsuario)
+                    .map(u -> u.getEmail())
+                    .orElse("");
+            
             model.addAttribute("nombreUsuario", nombreUsuario);
             model.addAttribute("emailUsuario", emailUsuario);
-            model.addAttribute("rolUsuario", rolUsuario != null ? rolUsuario : "Usuario");
+            model.addAttribute("rolUsuario", rolUsuario);
             model.addAttribute("inicialesUsuario", obtenerIniciales(nombreUsuario));
         }
     }
@@ -51,15 +62,12 @@ public class ClienteController {
     public String dashboard(Model model) {
         List<Cliente> clientes = clienteService.listarTodos();
         
-        // Filtrar clientes activos 
         long clientesActivos = clientes.stream()
             .filter(c -> c.getEstado() != null && c.getEstado() == 1)
             .count();
         
-        // Calcular nuevos clientes del mes 
         long nuevosClientesMes = clientesActivos;
         
-        // Estadísticas de ventas reales desde el servicio
         int totalVentasClientes = ventaService.contarTotalVentas();
         double ingresosClientes = ventaService.calcularIngresosTotales();
         
@@ -70,7 +78,6 @@ public class ClienteController {
         model.addAttribute("totalVentasClientes", totalVentasClientes);
         model.addAttribute("ingresosClientes", ingresosClientes);
         
-        // Últimos 3 clientes agregados 
         List<Cliente> ultimosClientes = clientes.stream()
             .filter(c -> c.getNombreCliente() != null && !c.getNombreCliente().isEmpty())
             .limit(3)

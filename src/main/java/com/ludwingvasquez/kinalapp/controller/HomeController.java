@@ -3,21 +3,24 @@ package com.ludwingvasquez.kinalapp.controller;
 import com.ludwingvasquez.kinalapp.entity.DetalleVenta;
 import com.ludwingvasquez.kinalapp.entity.Notificacion;
 import com.ludwingvasquez.kinalapp.entity.Producto;
+import com.ludwingvasquez.kinalapp.entity.Usuario;
 import com.ludwingvasquez.kinalapp.entity.Venta;
 import com.ludwingvasquez.kinalapp.service.IProductoService;
 import com.ludwingvasquez.kinalapp.service.IClienteService;
 import com.ludwingvasquez.kinalapp.service.IVentaService;
 import com.ludwingvasquez.kinalapp.service.IUsuarioService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-
-import jakarta.servlet.http.HttpSession;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Controller
@@ -37,29 +40,27 @@ public class HomeController {
     }
 
     @GetMapping("/dashboard")
-    public String dashboard(Model model, HttpSession session) {
-        // Recuperar usuario de la sesión
-        String nombreUsuario = (String) session.getAttribute("nombreUsuario");
-        String emailUsuario = (String) session.getAttribute("emailUsuario");
-        String rolUsuario = (String) session.getAttribute("rolUsuario");
+    public String dashboard(Model model, @AuthenticationPrincipal UserDetails userDetails,
+                           @RequestParam(name = "periodo", required = false, defaultValue = "mensual") String periodo) {
+        String nombreUsuario = userDetails != null ? userDetails.getUsername() : "Usuario";
+        String rolUsuario = userDetails != null ? 
+            userDetails.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "") : "USER";
         
-        // Si no hay usuario en sesión, redirigir al login
-        if (nombreUsuario == null) {
-            return "redirect:/login";
-        }
+        Optional<Usuario> usuarioOpt = usuarioService.buscarPorUsername(nombreUsuario);
+        String emailUsuario = usuarioOpt.map(Usuario::getEmail).orElse("");
         
-        // Agregar usuario al modelo
         model.addAttribute("nombreUsuario", nombreUsuario);
         model.addAttribute("emailUsuario", emailUsuario);
-        model.addAttribute("rolUsuario", rolUsuario != null ? rolUsuario : "Usuario");
+        model.addAttribute("rolUsuario", rolUsuario);
         model.addAttribute("inicialesUsuario", obtenerIniciales(nombreUsuario));
-        // Estadísticas generales
+        
+        model.addAttribute("periodoSeleccionado", periodo);
+        
         long totalProductos = productoService.listarTodos().size();
         long totalClientes = clienteService.listarTodos().size();
         long totalVentas = ventaService.listarTodos().size();
         long totalUsuarios = usuarioService.listarTodos().size();
 
-        // Calcular ingresos totales sumando los detalles de cada venta
         List<Venta> ventas = ventaService.listarTodos();
         BigDecimal ingresosTotales = BigDecimal.ZERO;
         for (Venta venta : ventas) {
@@ -72,19 +73,15 @@ public class HomeController {
             }
         }
 
-        // Productos con stock bajo 
         long productosBajoStock = productoService.listarTodos().stream()
                 .filter(p -> p.getStock() < 10)
                 .count();
 
-        // Clientes activos
         long clientesActivos = clienteService.listarPorEstado(1).size();
 
-        // Generar notificaciones dinámicas
         List<Notificacion> notificaciones = new ArrayList<>();
         long notifId = 1;
 
-        // Notificaciones de productos con stock bajo
         List<Producto> productosBajo = productoService.listarTodos().stream()
                 .filter(p -> p.getStock() < 10)
                 .limit(3)
@@ -98,7 +95,6 @@ public class HomeController {
             ));
         }
 
-        // Notificación de ventas recientes
         if (!ventas.isEmpty()) {
             Venta ultimaVenta = ventas.get(ventas.size() - 1);
             BigDecimal totalVenta = BigDecimal.ZERO;
@@ -116,7 +112,6 @@ public class HomeController {
             ));
         }
 
-        // Notificación de total de ingresos
         if (ingresosTotales.compareTo(BigDecimal.ZERO) > 0) {
             notificaciones.add(new Notificacion(
                     notifId++, "info",
@@ -126,7 +121,6 @@ public class HomeController {
             ));
         }
 
-        // Alerta si no hay clientes
         if (totalClientes == 0) {
             notificaciones.add(new Notificacion(
                     notifId++, "alert",
@@ -146,6 +140,12 @@ public class HomeController {
         model.addAttribute("ventasRecientes", ventas.size() > 5 ? ventas.subList(0, 5) : ventas);
         model.addAttribute("notificaciones", notificaciones);
         model.addAttribute("totalNotificaciones", notificaciones.size());
+        
+        List<Usuario> usuariosRecientes = usuarioService.listarTodos().stream()
+                .filter(u -> !"admin".equalsIgnoreCase(u.getUsername()))
+                .limit(5)
+                .collect(Collectors.toList());
+        model.addAttribute("usuariosRecientes", usuariosRecientes);
 
         return "dashboard";
     }
@@ -155,10 +155,9 @@ public class HomeController {
         return "redirect:/dashboard";
     }
 
-    @GetMapping("/logout")
-    public String logout(HttpSession session) {
-        session.invalidate();
-        return "redirect:/login";
+    @GetMapping("/logout-legacy")
+    public String logout() {
+        return "redirect:/logout";
     }
     
     private String obtenerIniciales(String nombre) {

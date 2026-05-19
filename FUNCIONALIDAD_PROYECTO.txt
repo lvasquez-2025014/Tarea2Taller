@@ -1,0 +1,722 @@
+================================================================================
+  KINALAPP - DOCUMENTACION COMPLETA LINEA POR LINEA (PARA EXPOSICION)
+================================================================================
+
+Autor: Ludwing Vasquez (carnet 2025014)
+Stack: Java 21 + Spring Boot 3.3.5 + Spring Security 6 + Spring Data JPA
+       + Thymeleaf + MySQL 8 + HTML5/CSS3 (sin JavaScript)
+Carpeta raiz: /Tarea2Taller
+
+INDICE
+--------------------------------------------------------------------------------
+ 1. ARQUITECTURA GENERAL Y FLUJO MVC
+ 2. ROLES Y CREDENCIALES HARDCODEADAS
+ 3. POM.XML (DEPENDENCIAS)
+ 4. APPLICATION.PROPERTIES
+ 5. KINALAPPLICATION (clase main)
+ 6. CONFIGURACION DE SEGURIDAD
+    6.1 SecurityConfig.java
+    6.2 AdminSeeder.java (admin hardcodeado)
+    6.3 InitialSetupService.java
+    6.4 CustomUserDetailsService.java
+ 7. ENTIDADES JPA
+    7.1 Usuario.java
+    7.2 Cliente.java
+    7.3 Producto.java
+    7.4 Venta.java
+    7.5 DetalleVenta.java
+    7.6 Notificacion.java (POJO)
+ 8. REPOSITORIOS
+ 9. INTERFACES Y SERVICIOS
+    9.1 UsuarioService
+    9.2 ClienteService
+    9.3 ProductoService
+    9.4 VentaService
+    9.5 DetalleVentaService
+10. CONTROLADORES
+    10.1 LoginController
+    10.2 SetupController
+    10.3 HomeController (dashboard)
+    10.4 UsuarioController
+    10.5 ClienteController
+    10.6 ProductoController
+    10.7 VentaController
+    10.8 DetalleVentaController
+    10.9 ErrorController
+11. PLANTILLAS THYMELEAF (HTML + CSS)
+    11.1 login.html / registro.html / setup.html
+    11.2 dashboard.html principal
+    11.3 productos/* (CRUD + dashboard)
+    11.4 clientes/*  / ventas/* / usuarios/* / detalles_ventas/*
+    11.5 acceso-denegado.html
+12. CSS DE AUTENTICACION (autenticacion.css)
+13. SCRIPT MYSQL (database/init_kinalapp.sql)
+14. FLUJO COMPLETO DE EJECUCION
+
+
+================================================================================
+ 1. ARQUITECTURA GENERAL Y FLUJO MVC
+================================================================================
+El proyecto sigue el patron MVC clasico de Spring Boot:
+
+    Navegador ---> Controlador @Controller ---> Servicio @Service ---> Repositorio @Repository ---> MySQL
+                                |
+                                v
+                         Plantilla Thymeleaf .html  (vista)
+
+* Las URLs entran por los @GetMapping/@PostMapping de los controladores.
+* Spring Security intercepta TODA peticion y aplica reglas de roles (ver 6.1).
+* Si el rol del usuario logueado tiene permiso, el controlador llama al servicio.
+* El servicio aplica reglas de negocio y valida datos, luego llama al repositorio.
+* El repositorio (interfaz JpaRepository) genera SQL automaticamente y consulta MySQL.
+* El controlador recibe la entidad, la pone en el Model y devuelve el nombre de
+  la plantilla Thymeleaf que renderiza el HTML final.
+
+Capas y paquetes:
+  com.ludwingvasquez.kinalapp
+    .config       -> SecurityConfig, AdminSeeder, InitialSetupService
+    .controller   -> 9 controladores HTTP
+    .service      -> Interfaces I* + sus implementaciones *Service
+    .repository   -> Interfaces JpaRepository (Usuario, Cliente, Producto, Venta, Detalle)
+    .entity       -> Entidades JPA mapeadas a tablas MySQL + POJO Notificacion
+
+
+================================================================================
+ 2. ROLES Y CREDENCIALES HARDCODEADAS
+================================================================================
+Hay 3 roles en el sistema:
+
+  ADMIN    -> Acceso TOTAL. Puede gestionar usuarios, clientes, productos,
+              ventas y detalles. CRUD completo en todas las entidades.
+  USER     -> Empleado. Puede gestionar clientes, productos, ventas y detalles
+              (CRUD completo) PERO NO PUEDE ENTRAR a /usuarios.
+  CLIENTE  -> Cliente final. Solo puede ver productos disponibles
+              (/productos/dashboard, /productos, /productos/{id}) y realizar
+              compras (/ventas/nueva, /ventas/guardar, /ventas/mis-ventas).
+              No puede ver listas de clientes ni usuarios.
+
+ADMIN HARDCODEADO:
+  Usuario:    admin
+  Password:   admin12345
+  Email:      admin@kinalapp.com
+  Rol:        ADMIN
+
+Este usuario se crea automaticamente al arrancar la aplicacion gracias a la
+clase AdminSeeder (CommandLineRunner). Si el usuario "admin" no existe en BD,
+se inserta. Si existe pero le falta el rol ADMIN, el estado=1 o la contrasena
+correcta, se corrige. Asi siempre se puede entrar como admin.
+
+
+================================================================================
+ 3. POM.XML (DEPENDENCIAS)
+================================================================================
+- <parent> spring-boot-starter-parent 3.3.5  -> gestiona versiones de todas las
+  librerias de Spring Boot.
+- groupId / artifactId / version              -> coordenadas Maven del modulo.
+- <java.version>21</java.version>             -> compila con JDK 21.
+- Dependencias clave:
+    spring-boot-starter-data-jpa     -> JPA/Hibernate para ORM.
+    spring-boot-starter-web          -> Spring MVC + Tomcat embebido.
+    spring-boot-starter-thymeleaf    -> motor de plantillas HTML.
+    mysql-connector-j (runtime)      -> driver JDBC para MySQL 8.
+    spring-boot-starter-security     -> filtros de seguridad y login form.
+    thymeleaf-extras-springsecurity6 -> dialecto sec:authorize en HTML.
+    spring-boot-starter-test         -> JUnit 5 + Spring Test.
+- Plugin spring-boot-maven-plugin    -> permite "mvn spring-boot:run" y crear
+                                         el .jar ejecutable.
+
+
+================================================================================
+ 4. APPLICATION.PROPERTIES
+================================================================================
+spring.application.name=kinalapp                -> nombre logico del servicio.
+server.port=8302                                -> Tomcat embebido escucha en 8302.
+spring.datasource.url=jdbc:mysql://localhost:3306/dbClientess_in5am
+                       ?createDatabaseIfNotExist=true   -> conexion a MySQL,
+                       crea la base si no existe.
+spring.datasource.username=root                 -> usuario MySQL local.
+spring.datasource.password=Ludwing299??         -> password MySQL local.
+spring.jpa.hibernate.ddl-auto=update            -> Hibernate genera/actualiza
+                                                  tablas a partir de las @Entity.
+spring.jpa.show-sql=true                        -> imprime las sentencias SQL
+                                                  generadas en consola (debug).
+
+
+================================================================================
+ 5. KINALAPPLICATION.JAVA
+================================================================================
+package com.ludwingvasquez.kinalapp;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication           -> activa autoconfig, componentScan y configs.
+public class KinalappApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(KinalappApplication.class, args);
+        // arranca el contenedor Spring, el Tomcat embebido en 8302
+        // y dispara los CommandLineRunner (AdminSeeder).
+    }
+}
+
+
+================================================================================
+ 6. CONFIGURACION DE SEGURIDAD
+================================================================================
+
+6.1 SecurityConfig.java
+--------------------------------------------------------------------------------
+@Configuration / @EnableWebSecurity
+   -> registra esta clase como configuracion de Spring Security.
+
+constructor con CustomUserDetailsService
+   -> inyecta el servicio que carga usuarios desde MySQL.
+
+@Bean SecurityFilterChain securityFilterChain(HttpSecurity http)
+   -> construye la cadena de filtros HTTP. REGLAS DE AUTORIZACION:
+
+   .requestMatchers("/css/**","/js/**","/img/**","/webjars/**").permitAll()
+      Recursos estaticos: cualquiera puede descargarlos.
+
+   .requestMatchers("/","/login","/registro","/setup","/error","/acceso-denegado")
+      .permitAll()
+      Paginas publicas (no requieren login).
+
+   .requestMatchers("/dashboard").hasAnyRole("ADMIN","USER","CLIENTE")
+      Cualquier usuario logueado entra al dashboard.
+
+   .requestMatchers("/usuarios/**").hasRole("ADMIN")
+      Modulo de Usuarios: SOLO admin.
+
+   .requestMatchers("/productos/nuevo","/productos/editar/**",
+                    "/productos/eliminar/**","/productos/actualizar/**",
+                    "/productos/exportar/**").hasAnyRole("ADMIN","USER")
+      Crear/editar/borrar/exportar productos: admin y empleados.
+
+   .requestMatchers("/productos","/productos/","/productos/dashboard",
+                    "/productos/{id:[0-9]+}").hasAnyRole("ADMIN","USER","CLIENTE")
+      Listado y ficha de producto (lectura): tambien para CLIENTE.
+
+   .requestMatchers("/clientes/**").hasAnyRole("ADMIN","USER")
+      Modulo Clientes: NUNCA para CLIENTE.
+
+   .requestMatchers("/ventas/nueva","/ventas/guardar","/ventas/mis-ventas/**")
+      .hasAnyRole("ADMIN","USER","CLIENTE")
+      El cliente puede CREAR su compra y ver sus propias ventas.
+
+   .requestMatchers("/ventas/editar/**","/ventas/eliminar/**",
+                    "/ventas/actualizar/**").hasRole("ADMIN")
+      Editar/eliminar ventas: SOLO admin.
+
+   .requestMatchers("/ventas/**").hasAnyRole("ADMIN","USER")
+      Resto de operaciones de ventas: admin y empleados.
+
+   .requestMatchers("/detalles_ventas/**").hasAnyRole("ADMIN","USER")
+      Detalles de venta: admin y empleados.
+
+   .anyRequest().authenticated()
+      Cualquier otra ruta exige sesion iniciada.
+
+   .formLogin(...) -> login form personalizado en /login con campos username
+                       y password. Tras login redirige a /dashboard. Si falla,
+                       /login?error=true.
+   .logout(...)    -> logout en /logout (GET o POST), invalida sesion y borra
+                       cookie JSESSIONID. Redirige a /login?logout=true.
+   .sessionManagement(...maximumSessions(1)) -> solo una sesion activa por
+                       usuario; si se loguea otra vez, la anterior expira
+                       y se manda a /login?expired=true.
+   .exceptionHandling(...accessDeniedPage("/acceso-denegado"))
+                    -> si un usuario intenta entrar a una ruta sin rol,
+                       Spring lo manda a la pagina amigable de "Acceso denegado".
+   .authenticationProvider(authenticationProvider())
+                    -> registra el DaoAuthenticationProvider que abajo se define.
+
+@Bean PasswordEncoder passwordEncoder()
+   -> devuelve un BCryptPasswordEncoder (hash seguro de contrasenas).
+
+@Bean DaoAuthenticationProvider authenticationProvider()
+   -> usa CustomUserDetailsService + BCrypt para validar credenciales.
+
+@Bean AuthenticationManager authenticationManager(AuthenticationConfiguration)
+   -> expone el AuthenticationManager por si se necesita autenticar manualmente.
+
+6.2 AdminSeeder.java
+--------------------------------------------------------------------------------
+@Component       -> Spring lo detecta como bean.
+implements CommandLineRunner -> Spring lo ejecuta automaticamente
+                                 una vez al arrancar la app.
+
+Constantes:
+   ADMIN_USERNAME = "admin"
+   ADMIN_PASSWORD = "admin12345"
+   ADMIN_EMAIL    = "admin@kinalapp.com"
+   ADMIN_ROL      = "ADMIN"
+
+run(String... args):
+   1. usuarioRepository.findByUsername("admin") busca el admin en BD.
+   2. Si existe:
+        - Si el rol no es ADMIN, lo corrige.
+        - Si el estado es null o != 1, lo activa.
+        - Si la contrasena guardada no coincide con admin12345
+          (passwordEncoder.matches), la re-encripta con BCrypt y la actualiza.
+        - Si hubo cambios, guarda.
+   3. Si NO existe: crea un Usuario nuevo con esos datos, la contrasena
+      hasheada con BCrypt y estado=1, y lo guarda.
+   => Asi SIEMPRE se puede iniciar sesion como admin/admin12345.
+
+6.3 InitialSetupService.java
+--------------------------------------------------------------------------------
+@Service @Transactional
+Sirve a SetupController para flujo legado de "primer arranque". No se usa
+en flujo normal porque ya tenemos AdminSeeder. Metodos:
+
+  requiereConfiguracionInicial()
+     Devuelve true si la tabla usuarios esta vacia.
+
+  crearPrimerAdmin(username, password, email)
+     - Lanza error si ya hay usuarios.
+     - Valida campos (no vacios) y unicidad de username.
+     - Crea Usuario con rol ADMIN, estado 1 y password con BCrypt.
+     - Lo guarda usando usuarioService.guardar().
+
+6.4 CustomUserDetailsService.java
+--------------------------------------------------------------------------------
+@Service que implementa UserDetailsService de Spring Security.
+
+  loadUserByUsername(username):
+     1. usuarioRepository.findByUsername(username).
+     2. Si vacio -> UsernameNotFoundException ("Usuario no encontrado").
+     3. Si estado != 1 -> UsernameNotFoundException ("Usuario inactivo").
+     4. Toma el rol (default "USER") y construye una SimpleGrantedAuthority
+        con prefijo "ROLE_" + rol.toUpperCase()  (Spring Security requiere
+        ese prefijo cuando usamos hasRole(...)).
+     5. Devuelve un objeto User de Spring con username, password (hash de BD),
+        accountNonExpired/locked/credentialsNonExpired/enabled=true y la lista
+        de authorities.
+
+
+================================================================================
+ 7. ENTIDADES JPA
+================================================================================
+
+7.1 Usuario.java
+--------------------------------------------------------------------------------
+@Entity @Table(name="usuarios")     -> mapea tabla usuarios.
+Campos:
+  @Id @GeneratedValue IDENTITY       -> codigo_usuario BIGINT autoincremental.
+  username, password, email, rol    -> VARCHAR.
+  estado                             -> BIGINT (1=activo, 0=inactivo).
+Constructor vacio y constructor completo + getters/setters tradicionales.
+@JsonProperty("codigo_usuario")     -> al serializar a JSON, usa snake_case.
+
+7.2 Cliente.java
+--------------------------------------------------------------------------------
+@Entity @Table(name="clientes")
+  @Id String DPICliente (dpi_cliente) -> PK natural, no autogenerada.
+  nombreCliente, apellidoCliente     -> nombre completo.
+  direccion                          -> texto libre.
+  estado (Integer)                   -> 1 activo / 0 inactivo.
+  fotoUrl                            -> URL o ruta de foto opcional.
+
+7.3 Producto.java
+--------------------------------------------------------------------------------
+@Entity @Table(name="productos")
+  @Id @GeneratedValue codigo_producto (Integer)
+  nombre_producto, precio (Double), stock (Integer), estado (Long).
+
+7.4 Venta.java
+--------------------------------------------------------------------------------
+@Entity @Table(name="ventas")
+  @Id @GeneratedValue codigoVenta (Long).
+  fechaVenta (LocalDate)            con @JsonFormat para formato yyyy-MM-dd.
+  estado (Long)                     1 = activa / 0 = anulada.
+  cliente -> @ManyToOne LAZY  FK dpi_cliente (referencia Cliente.DPICliente).
+  usuario -> @ManyToOne LAZY  FK codigo_usuario (Usuario que registro la venta).
+  detalles -> @OneToMany mappedBy="venta" CASCADE.ALL LAZY
+              + @JsonIgnoreProperties("venta") para evitar ciclos de serializacion.
+
+7.5 DetalleVenta.java
+--------------------------------------------------------------------------------
+@Entity @Table(name="detalles_ventas")
+  @Id @GeneratedValue codigoDetalle.
+  venta (Venta)  @ManyToOne EAGER FK codigo_venta + @JsonIgnoreProperties("detalles").
+  producto (Producto) @ManyToOne EAGER FK codigo_producto.
+  cantidad (Integer), precioUnitario (Double), estado (Long).
+
+7.6 Notificacion.java
+--------------------------------------------------------------------------------
+POJO simple (NO entidad JPA). Se usa en memoria para mostrar tarjetas de
+notificacion en el dashboard (stock bajo, ultima venta, ingresos, etc.).
+Campos: id, tipo, titulo, mensaje, fecha, leida, icono, color.
+
+
+================================================================================
+ 8. REPOSITORIOS
+================================================================================
+Todos extienden JpaRepository<Entidad, TipoDeId>, lo que genera
+automaticamente: save, findById, findAll, delete, count, existsById, etc.
+
+UsuarioRepository
+  findByEstado(Long)            -> filtrar activos/inactivos.
+  findByUsername(String)        -> usado para login y para el seeder admin.
+
+ClienteRepository
+  findByEstado(Integer)         -> activos/inactivos.
+
+ProductoRepository
+  findByEstado(Long)            -> activos/inactivos.
+
+VentasRepository
+  findByEstado(Long)            -> activas/anuladas.
+
+DetalleVentaRepository
+  findByEstado(Long)
+  findByVenta_CodigoVenta(Integer)  -> filtra detalles por venta padre.
+
+
+================================================================================
+ 9. INTERFACES Y SERVICIOS
+================================================================================
+Cada modulo tiene una interfaz I*Service y una clase *Service que la implementa.
+Esto permite inyectar la interfaz en los controladores y desacoplar la logica.
+
+9.1 IUsuarioService / UsuarioService
+   listarTodos, buscarPorId, guardar, actualizar, eliminar, existePorCodigo,
+   buscarPorUsername.
+   validarUsuario:
+     - username no vacio.
+     - password >= 8 caracteres.
+     - email con @ y .
+     - estado no nulo.
+
+9.2 IClienteService / ClienteService
+   listarTodos, guardar, buscarPorDPI, actualizar, eliminar, existePorDPI,
+   listarPorEstado.
+   validarCliente:
+     - DPI no vacio, nombre y apellido obligatorios.
+   guardar: si estado==0 fuerza estado=1.
+
+9.3 IProductoService / ProductoService
+   listarTodos, guardar, buscarPorCodigo, actualizar, eliminar,
+   existePorCodigo, listarPorEstado.
+   validarProducto:
+     - nombre obligatorio.
+     - precio >= 0.
+     - stock >= 0.
+
+9.4 IVentaService / VentaService
+   listarTodos, guardar, buscarCV (por codigo venta), actualizar, eliminar,
+   existePorCV, listarActivas, contarVentasPorCliente,
+   calcularTotalVentasPorCliente, contarTotalVentas, calcularIngresosTotales,
+   listarVentasPorCliente.
+   guardar:
+     - verifica que el Cliente y el Usuario existan.
+     - si no hay fecha, pone LocalDate.now().
+     - estado=1 por defecto.
+   calcularIngresosTotales: suma cantidad * precioUnitario de detalles activos.
+
+9.5 IDetalleVentaService / DetalleVentaService
+   listarTodos, guardar, buscarPorId, actualizar, eliminar, existePorId,
+   listarPorVenta.
+   guardar:
+     - exige venta y producto validos.
+     - cantidad > 0.
+     - estado=1 por defecto.
+
+
+================================================================================
+10. CONTROLADORES
+================================================================================
+
+10.1 LoginController
+--------------------------------------------------------------------------------
+ROLES_PERMITIDOS = {"USER","CLIENTE"}  (registro publico no permite ADMIN).
+
+GET "/"              -> redirect:/login
+GET "/login"
+   - Si ya hay sesion, redirect:/dashboard.
+   - Si ?error=true muestra "Usuario o contrasena incorrectos".
+   - Si ?logout=true muestra "Has cerrado sesion".
+   - Devuelve template "login".
+
+GET "/registro"      -> agrega lista de roles permitidos al modelo, devuelve "registro".
+
+POST "/registro"
+   1. Valida que rol enviado este en {"USER","CLIENTE"}; si no, default "CLIENTE".
+   2. Si el username ya existe -> error.
+   3. password.length() >= 8.
+   4. email debe contener @ y .
+   5. Crea Usuario, encripta password con BCrypt, estado=1.
+   6. Guarda con usuarioService.guardar() (valida tambien en service).
+   7. Manda flash "toastExito" y redirect:/login.
+
+10.2 SetupController
+--------------------------------------------------------------------------------
+Flujo legado: si la BD esta vacia, permite crear el primer admin via /setup.
+Con AdminSeeder este flujo rara vez se usa, pero queda como fallback.
+
+GET "/setup"  -> si ya hay usuarios, redirect a /login. Si no, muestra form.
+POST "/setup" -> valida username (>=3), password (>=8) y email con @ y .,
+                 luego initialSetupService.crearPrimerAdmin(...). Redirect /login.
+
+10.3 HomeController
+--------------------------------------------------------------------------------
+GET "/dashboard" (Model, UserDetails, ?periodo)
+   1. nombreUsuario = userDetails.getUsername() o "Usuario".
+   2. rolUsuario   = primer authority sin "ROLE_".
+   3. emailUsuario = usuarioService.buscarPorUsername(...).getEmail().
+   4. Calcula:
+        totalProductos, totalClientes, totalVentas, totalUsuarios.
+        ingresosTotales = suma de cantidad*precioUnitario en todos los
+                          DetalleVenta de todas las Venta.
+        productosBajoStock = productos con stock < 10.
+        clientesActivos    = listarPorEstado(1).size().
+   5. Construye lista de Notificacion:
+        - hasta 3 alertas de stock bajo.
+        - notificacion de ultima venta (codigo + total).
+        - notificacion de ingresos totales si > 0.
+        - alerta si no hay clientes.
+   6. usuariosRecientes = los primeros 5 que NO sean "admin".
+   7. Agrega TODO al modelo y devuelve "dashboard".
+
+GET "/inicio"        -> redirect:/dashboard.
+GET "/logout-legacy" -> redirect:/logout.
+
+obtenerIniciales(nombre):
+   parte por . o espacio o @ y construye 2 letras (ej. "luis perez" -> "LP").
+
+10.4 UsuarioController  (Solo ADMIN)
+--------------------------------------------------------------------------------
+@RequestMapping("/usuarios"). Cada metodo llama esAdmin() para defensa en
+profundidad (ademas de SecurityConfig).
+   @ModelAttribute agregarUsuarioAlModelo: lee atributos de la sesion y los
+                  inyecta a la vista (nombre, email, rol, iniciales).
+   esAdmin(): consulta SecurityContextHolder y revisa ROLE_ADMIN.
+Endpoints CRUD:
+   GET  /usuarios/dashboard               -> lista + total y vista dashboard.
+   GET  /usuarios                          -> lista usuarios.
+   GET  /usuarios/nuevo                    -> form vacio.
+   GET  /usuarios/{codigo_usuario}         -> ficha.
+   POST /usuarios                          -> guardar (catch IllegalArgument).
+   GET  /usuarios/editar/{codigo_usuario}  -> form precargado.
+   POST /usuarios/actualizar/{codigo_usuario} -> actualiza por id.
+   GET  /usuarios/eliminar/{codigo_usuario}-> borra por id.
+
+10.5 ClienteController  (ADMIN + USER)
+--------------------------------------------------------------------------------
+@ModelAttribute injecta info del usuario logueado al modelo (para sidebar).
+GET  /clientes/dashboard  -> estadisticas y top 3 clientes.
+GET  /clientes            -> lista.
+GET  /clientes/nuevo      -> form nuevo.
+GET  /clientes/{dpi}      -> ficha por DPI.
+POST /clientes            -> crear.
+GET  /clientes/editar/{dpi}-> form para editar.
+POST /clientes/actualizar/{dpi} -> actualiza.
+GET  /clientes/eliminar/{dpi}   -> borra.
+GET  /clientes/activos   -> lista filtrada estado=1.
+GET  /clientes/inactivos -> lista filtrada estado=0.
+
+10.6 ProductoController
+--------------------------------------------------------------------------------
+@ModelAttribute injecta info del usuario logueado (cualquier rol logueado).
+GET  /productos/dashboard, /productos, /productos/{id}  -> abiertos a CLIENTE.
+GET  /productos/nuevo, /productos/editar/{id},
+     /productos/eliminar/{id}, /productos/exportar/csv -> bloqueados a CLIENTE
+                                                          via SecurityConfig.
+POST /productos                                -> guardar (admin/user).
+POST /productos/actualizar/{id}                -> actualizar (admin/user).
+GET  /productos/exportar/csv                   -> exporta CSV con
+                                                  Codigo,Nombre,Precio,Stock,Estado.
+
+10.7 VentaController
+--------------------------------------------------------------------------------
+@RequestMapping("/ventas"). @ModelAttribute injecta info de sesion.
+GET  /ventas/dashboard        -> KPI + ventas.
+GET  /ventas                  -> lista.
+GET  /ventas/nuevo            -> form nuevo (clientes incluidos via SecurityConfig
+                                  alias /ventas/nueva, /ventas/guardar).
+GET  /ventas/{codigoVenta}    -> detalle.
+POST /ventas                  -> guardar.
+GET  /ventas/editar/{cv}      -> editar (solo ADMIN).
+POST /ventas/actualizar/{cv}  -> actualizar (solo ADMIN).
+GET  /ventas/eliminar/{cv}    -> borrar (solo ADMIN).
+GET  /ventas/activas          -> filtra estado=1.
+
+10.8 DetalleVentaController  (ADMIN + USER)
+--------------------------------------------------------------------------------
+@RequestMapping("/detalles_ventas")
+CRUD basico: listar, ver por id, crear, editar, actualizar, eliminar,
+listar por codigoVenta.
+
+10.9 ErrorController
+--------------------------------------------------------------------------------
+@GetMapping("/acceso-denegado") -> renderiza acceso-denegado.html con
+mensaje amigable para usuarios sin permisos.
+
+
+================================================================================
+11. PLANTILLAS THYMELEAF (HTML + CSS)
+================================================================================
+Todas viven en /src/main/resources/templates/. Usan namespace:
+   xmlns:th="http://www.thymeleaf.org"
+   xmlns:sec="http://www.thymeleaf.org/extras/spring-security"  (en las que
+                 condicionan UI por rol con sec:authorize="hasRole('ADMIN')").
+
+11.1 login.html
+--------------------------------------------------------------------------------
+- <head>: meta utf-8, viewport responsive, preconnect a Google Fonts (Inter +
+          Cinzel), hoja autenticacion.css.
+- Capa de fondo (bg-layer): gradient + noise SVG + grid + 3 orbs animados +
+  particulas + anillos decorativos => efecto visual dorado/azul-marino.
+- Toast-container con div th:if="${toastExito}" que muestra exito al regresar
+  desde /registro (flash attribute).
+- <main class="auth-wrapper"> con form-card:
+    * header brand-panel: logo (img th:src="@{/img/logo.png}") + "Kinal" + tag.
+    * toggle-nav: enlaces "Iniciar Sesion" / "Crear Cuenta".
+    * form method="post" th:action="@{/login}":
+        - input type=hidden CSRF (Spring Security usa CSRF por defecto).
+        - input name="username", input type="password" name="password".
+        - checkbox "remember", link "Olvidaste tu contrasena".
+        - boton submit "Acceder al portal" con spinner.
+- Botones sociales (Google/GitHub) -> placeholders visuales sin funcionalidad.
+
+11.2 registro.html
+--------------------------------------------------------------------------------
+Similar a login pero el form POST a /registro. Campos: username, email,
+password, rol (select con USER/CLIENTE). Tras envio exitoso vuelve a login
+mostrando un toast de felicitacion.
+
+11.3 setup.html
+--------------------------------------------------------------------------------
+Vista de configuracion inicial unica. Tres inputs (username, email, password)
+y boton "Crear Administrador" que envia POST a /setup.
+
+11.4 dashboard.html  (principal del sistema, accesible a todos)
+--------------------------------------------------------------------------------
+- :root con variables CSS (paleta navy + gold + flame, radios, easings,
+  anchos de sidebar/header).
+- Body con animaciones de fondo (orbs, particulas, gradients).
+- Inputs radio invisibles para cambiar vista sin JavaScript (CSS only):
+     view-dashboard, view-analiticas, view-rendimiento, view-seguridad,
+     view-configuracion.
+- Sidebar:
+    * brand con logo + titulo "KINAL".
+    * Seccion "Principal": Dashboard, Productos, Clientes, Ventas (Clientes y
+      Ventas ocultos a CLIENTE via sec:authorize="hasAnyRole('ADMIN','USER')").
+    * Seccion "Gestion": link Usuarios solo si sec:authorize="hasRole('ADMIN')".
+    * Seccion "Sistema": Analiticas, Rendimiento, Seguridad, Configuracion
+      (labels que activan los radios).
+    * footer con avatar (iniciales) + nombre + rol.
+- Header sticky con search box y campana de notificaciones.
+- 4 stat-cards principales:
+     Productos (totalProductos + alerta bajo stock),
+     Clientes (totalClientes + activos),
+     Ventas (totalVentas + ingresosTotales formateados a Q),
+     Usuarios (solo ADMIN, totalUsuarios).
+- Grafico SVG de ingresos (lineas + dots) con switch de periodo via links
+  th:href="@{/dashboard(periodo='mensual')}".
+- Tabla "Usuarios Recientes" (solo ADMIN, th:each sobre usuariosRecientes).
+- Lista de notificaciones generadas en el HomeController.
+
+11.5 productos/dashboard.html
+--------------------------------------------------------------------------------
+- Sidebar con sec:authorize en links Clientes/Ventas/Usuarios.
+- Alert card visible si productosBajoStock no vacio.
+- 4 stats: Total productos, Stock bajo, Valor inventario, Productos activos.
+- Tabla "Catalogo de Productos" (th:each producto : ${productos}) con barra
+  visual mini de stock.
+- Tabla "Stock Critico".
+- Bar chart "Productos mas vendidos" (visual de ejemplo).
+- Quick Actions:
+    - Nuevo Producto (oculto a CLIENTE via sec:authorize="hasAnyRole('ADMIN','USER')")
+    - Lista de Productos (visible para todos los roles).
+
+11.6 productos/lista.html, productos/formulario.html, productos/detalle.html
+--------------------------------------------------------------------------------
+CRUD visual. Formulario th:object="${producto}" con campos nombre, precio,
+stock, estado. Boton submit cambia entre /productos (POST nuevo) o
+/productos/actualizar/{id} (POST editar) segun la variable booleana editar.
+
+11.7 clientes/* (lista, formulario, detalle, dashboard)
+--------------------------------------------------------------------------------
+Solo ADMIN/USER. Lista incluye busqueda por query param search.
+Formulario con DPI (PK, readonly al editar), nombre, apellido, direccion,
+estado y fotoUrl.
+
+11.8 ventas/* y detalles_ventas/*
+--------------------------------------------------------------------------------
+Listas con tablas, dashboard con KPIs, formulario para asociar cliente +
+usuario + fecha. Detalles permite agregar productos y cantidades a una venta.
+
+11.9 usuarios/* (solo ADMIN)
+--------------------------------------------------------------------------------
+Igual estructura: dashboard, lista, formulario, detalle. Badge "ADMIN/USER".
+
+11.10 acceso-denegado.html
+--------------------------------------------------------------------------------
+Pagina amigable cuando el rol no permite la ruta. Sale el icono + mensaje y
+boton para volver al dashboard.
+
+
+================================================================================
+12. CSS AUTENTICACION.CSS  (/static/css/autenticacion.css)
+================================================================================
+Define variables (navy, gold, flame, error, success) y estilos para:
+  .bg-layer, .bg-gradient, .noise, .grid, .orb, .particles  -> fondo animado.
+  .auth-wrapper, .form-card, .card-border, .card-highlight  -> tarjeta de login.
+  .brand-panel, .brand-icon, .brand-text                    -> encabezado.
+  .toggle-nav, .toggle-label, .toggle-thumb                 -> tabs login/registro.
+  .input-wrap, .input-field, .input-label, .input-icon,
+  .state-dot, .input-underline                              -> campos flotantes.
+  .check-row, .check-box, .check-label, .link-sm            -> "recordarme".
+  .btn-main, .btn-spinner, .spinner                         -> boton primario.
+  .divider, .btn-social                                     -> botones sociales.
+  .toast-container, .toast, .toast-success                  -> notificaciones.
+  .confetti-container .particle (anim)                      -> efecto post-registro.
+
+
+================================================================================
+13. SCRIPT MYSQL  (/database/init_kinalapp.sql)
+================================================================================
+Crea la base dbClientess_in5am y todas las tablas con tipos y FKs correctas:
+
+  usuarios (codigo_usuario PK, username UNIQUE, password, email, rol, estado).
+  clientes (dpi_cliente PK, nombre, apellido, direccion, estado, foto_url).
+  productos (codigo_producto PK, nombre, precio, stock, estado).
+  ventas (codigo_venta PK, fecha_venta, estado, dpi_cliente FK->clientes,
+          codigo_usuario FK->usuarios).
+  detalles_ventas (codigo_detalle PK, codigo_venta FK->ventas CASCADE,
+                   codigo_producto FK->productos, cantidad, precio_unitario,
+                   estado).
+
+Luego inserta:
+  25 productos reales (laptops, monitores, mouse, etc.) con precios en Q
+  y stock disponible.
+  5 clientes de ejemplo (con DPI ficticio, ya activos).
+
+Nota: el ADMIN no se inserta aqui; lo crea AdminSeeder al arrancar.
+
+Verificacion final: un SELECT con UNION ALL muestra cuantas filas hay en
+cada tabla.
+
+
+================================================================================
+14. FLUJO COMPLETO DE EJECUCION
+================================================================================
+1. Abrir MySQL Workbench, ejecutar /database/init_kinalapp.sql para crear
+   tablas y poblar productos+clientes (opcional: Hibernate lo crea solo, pero
+   el script poblaria los productos).
+2. mvn spring-boot:run  (o ejecutar KinalappApplication desde el IDE).
+3. Spring Boot levanta Tomcat en http://localhost:8302.
+4. AdminSeeder corre, crea o repara el admin (admin / admin12345).
+5. Ir a http://localhost:8302/login.
+6. Ejemplos:
+   - Login con admin/admin12345  -> ve y gestiona TODO.
+   - Registrar nueva cuenta como USER -> ve clientes, productos, ventas
+     (sin acceso a /usuarios).
+   - Registrar nueva cuenta como CLIENTE -> solo ve productos y puede
+     comprar (/ventas/nueva).
+7. Cerrar sesion: GET o POST /logout.
+
+================================================================================
+                          FIN DE LA DOCUMENTACION
+================================================================================

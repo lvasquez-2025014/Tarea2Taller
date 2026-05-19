@@ -1,12 +1,14 @@
 package com.ludwingvasquez.kinalapp.controller;
 
 import com.ludwingvasquez.kinalapp.entity.Venta;
+import com.ludwingvasquez.kinalapp.service.IUsuarioService;
 import com.ludwingvasquez.kinalapp.service.IVentaService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpSession;
 import java.util.List;
 
 @Controller
@@ -14,21 +16,30 @@ import java.util.List;
 public class VentaController {
 
     private final IVentaService ventaService;
+    private final IUsuarioService usuarioService;
 
-    public VentaController(IVentaService ventaService) {
+    public VentaController(IVentaService ventaService, IUsuarioService usuarioService) {
         this.ventaService = ventaService;
+        this.usuarioService = usuarioService;
     }
 
     @ModelAttribute
-    public void agregarUsuarioAlModelo(Model model, HttpSession session) {
-        String nombreUsuario = (String) session.getAttribute("nombreUsuario");
-        String emailUsuario = (String) session.getAttribute("emailUsuario");
-        String rolUsuario = (String) session.getAttribute("rolUsuario");
-        
-        if (nombreUsuario != null) {
+    public void agregarUsuarioAlModelo(Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+            String nombreUsuario = auth.getName();
+            String rolUsuario = auth.getAuthorities().stream()
+                    .findFirst()
+                    .map(a -> a.getAuthority().replace("ROLE_", ""))
+                    .orElse("Usuario");
+            
+            String emailUsuario = usuarioService.buscarPorUsername(nombreUsuario)
+                    .map(u -> u.getEmail())
+                    .orElse("");
+            
             model.addAttribute("nombreUsuario", nombreUsuario);
             model.addAttribute("emailUsuario", emailUsuario);
-            model.addAttribute("rolUsuario", rolUsuario != null ? rolUsuario : "Usuario");
+            model.addAttribute("rolUsuario", rolUsuario);
             model.addAttribute("inicialesUsuario", obtenerIniciales(nombreUsuario));
         }
     }
@@ -45,10 +56,14 @@ public class VentaController {
     }
 
     @GetMapping("/dashboard")
-    public String dashboard(Model model) {
+    public String dashboard(Model model, 
+                           @RequestParam(name = "periodo", required = false, defaultValue = "semana") String periodo,
+                           @RequestParam(name = "tendencia", required = false, defaultValue = "mes") String tendencia) {
         List<Venta> ventas = ventaService.listarTodos();
         model.addAttribute("ventas", ventas);
         model.addAttribute("totalVentas", ventas.size());
+        model.addAttribute("periodoSeleccionado", periodo);
+        model.addAttribute("tendenciaSeleccionada", tendencia);
         return "ventas/dashboard";
     }
 
