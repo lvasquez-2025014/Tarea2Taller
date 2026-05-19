@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -316,18 +316,18 @@
             <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span>
             Productos
           </a>
-          <a th:href="@{/ventas/dashboard}" class="nav-item">
+          <a sec:authorize="hasAnyRole('ADMIN','USER')" th:href="@{/ventas/dashboard}" class="nav-item">>
             <span class="nav-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></span>
             Ventas
           </a>
         </div>
         <div class="nav-section">
           <div class="nav-section-title">Gestión</div>
-          <a th:href="@{/clientes/dashboard}" class="nav-item">
+          <a sec:authorize="hasAnyRole('ADMIN','USER')" th:href="@{/clientes/dashboard}" class="nav-item">
             <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>
             Clientes
           </a>
-          <a th:href="@{/usuarios/dashboard}" class="nav-item">
+          <a sec:authorize="hasRole('ADMIN')" th:href="@{/usuarios/dashboard}" class="nav-item">
             <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
             Usuarios
           </a>
@@ -361,7 +361,7 @@
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input type="text" placeholder="Buscar producto...">
           </div>
-          <a th:href="@{/productos/nuevo}" class="header-btn" style="text-decoration:none;" title="Nuevo Producto">
+          <a sec:authorize="hasAnyRole('ADMIN','USER')" th:href="@{/productos/nuevo}" class="header-btn" style="text-decoration:none;" title="Nuevo Producto">
             <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </a>
           <button class="header-btn">
@@ -431,7 +431,7 @@
                 <div class="card-title">Catálogo de Productos</div>
                 <div class="card-subtitle" th:text="${totalProductos} + ' productos registrados'">156 productos registrados</div>
               </div>
-              <div class="card-actions">
+              <div class="card-actions" sec:authorize="hasAnyRole('ADMIN','USER')">
                 <button class="card-action-btn">Filtrar</button>
                 <button class="card-action-btn">Exportar</button>
                 <a th:href="@{/productos/nuevo}" class="card-action-btn primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
@@ -569,7 +569,7 @@
           </div>
           <div class="card-body">
             <div class="quick-actions">
-              <a th:href="@{/productos/nuevo}" class="quick-action-btn" style="text-decoration:none;">
+              <a sec:authorize="hasAnyRole('ADMIN','USER')" th:href="@{/productos/nuevo}" class="quick-action-btn" style="text-decoration:none;">
                 <div class="quick-action-icon" style="background:linear-gradient(135deg,var(--gold-dark),var(--gold));">
                   <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </div>

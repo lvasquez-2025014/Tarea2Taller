@@ -28,21 +28,26 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/css/**", "/js/**", "/img/**", "/webjars/**").permitAll()
                 .requestMatchers("/", "/login", "/registro", "/setup", "/error", "/acceso-denegado").permitAll()
-                .requestMatchers("/dashboard").hasAnyRole("ADMIN", "USER", "CLIENTE", "RECURSOS_HUMANOS")
-                
-                .requestMatchers("/usuarios/editar/**", "/usuarios/eliminar/**", "/usuarios/actualizar/**").hasRole("ADMIN")
-                .requestMatchers("/clientes/editar/**", "/clientes/eliminar/**", "/clientes/actualizar/**").hasRole("ADMIN")
-                .requestMatchers("/productos/editar/**", "/productos/eliminar/**").hasRole("ADMIN")
-                .requestMatchers("/ventas/editar/**", "/ventas/eliminar/**").hasRole("ADMIN")
 
-                .requestMatchers("/usuarios", "/usuarios/dashboard", "/usuarios/nuevo", "/usuarios/**").hasRole("ADMIN")
-                .requestMatchers("/clientes", "/clientes/dashboard", "/clientes/nuevo", "/clientes/**").hasAnyRole("ADMIN", "USER", "RECURSOS_HUMANOS")
-                .requestMatchers("/productos", "/productos/dashboard", "/productos/nuevo", "/productos/**").hasAnyRole("ADMIN", "USER")
-                .requestMatchers("/ventas", "/ventas/dashboard", "/ventas/nueva", "/ventas/guardar", "/ventas/**").hasAnyRole("ADMIN", "USER")
-                
-                .requestMatchers("/productos", "/productos/dashboard", "/productos/detalle/**").hasAnyRole("ADMIN", "USER", "CLIENTE")
-                .requestMatchers("/ventas/nueva", "/ventas/guardar", "/ventas/mis-ventas/**").hasAnyRole("ADMIN", "USER", "CLIENTE")
-                
+                .requestMatchers("/dashboard").hasAnyRole("ADMIN", "USER", "CLIENTE")
+
+                .requestMatchers("/usuarios/**").hasRole("ADMIN")
+
+                .requestMatchers("/productos/nuevo", "/productos/editar/**", "/productos/eliminar/**",
+                                 "/productos/actualizar/**", "/productos/exportar/**").hasAnyRole("ADMIN", "USER")
+                .requestMatchers("/productos", "/productos/", "/productos/dashboard", "/productos/{id:[0-9]+}")
+                    .hasAnyRole("ADMIN", "USER", "CLIENTE")
+
+                .requestMatchers("/clientes/**").hasAnyRole("ADMIN", "USER")
+
+                .requestMatchers("/ventas/nueva", "/ventas/guardar", "/ventas/mis-ventas/**")
+                    .hasAnyRole("ADMIN", "USER", "CLIENTE")
+                .requestMatchers("/ventas/editar/**", "/ventas/eliminar/**", "/ventas/actualizar/**")
+                    .hasRole("ADMIN")
+                .requestMatchers("/ventas/**").hasAnyRole("ADMIN", "USER")
+
+                .requestMatchers("/detalles_ventas/**").hasAnyRole("ADMIN", "USER")
+
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -50,9 +55,7 @@ public class SecurityConfig {
                 .loginProcessingUrl("/login")
                 .usernameParameter("username")
                 .passwordParameter("password")
-                .successHandler((request, response, authentication) -> {
-                    response.sendRedirect("/dashboard");
-                })
+                .successHandler((request, response, authentication) -> response.sendRedirect("/dashboard"))
                 .failureUrl("/login?error=true")
                 .permitAll()
             )
@@ -62,7 +65,7 @@ public class SecurityConfig {
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .permitAll()
-                .logoutRequestMatcher(request -> request.getRequestURI().equals("/logout")) //Permitir GET y POST
+                .logoutRequestMatcher(request -> request.getRequestURI().equals("/logout"))
             )
             .sessionManagement(session -> session
                 .maximumSessions(1)

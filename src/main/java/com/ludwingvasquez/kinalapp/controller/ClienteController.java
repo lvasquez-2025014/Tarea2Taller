@@ -78,7 +78,6 @@ public class ClienteController {
         model.addAttribute("totalVentasClientes", totalVentasClientes);
         model.addAttribute("ingresosClientes", ingresosClientes);
         
-        // Últimos 3 clientes agregados 
         List<Cliente> ultimosClientes = clientes.stream()
             .filter(c -> c.getNombreCliente() != null && !c.getNombreCliente().isEmpty())
             .limit(3)

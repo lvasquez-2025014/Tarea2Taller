@@ -17,9 +17,6 @@ public class SetupController {
         this.initialSetupService = initialSetupService;
     }
 
-    /**
-     * Muestra la página de configuración inicial solo si no hay usuarios.
-     */
     @GetMapping("/setup")
     public String mostrarSetup(Model model) {
         if (!initialSetupService.requiereConfiguracionInicial()) {
@@ -28,9 +25,6 @@ public class SetupController {
         return "setup";
     }
 
-    /**
-     * Procesa la creación del primer administrador.
-     */
     @PostMapping("/setup")
     public String procesarSetup(@RequestParam String username,
                                   @RequestParam String password,

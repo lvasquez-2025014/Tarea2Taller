@@ -2,6 +2,8 @@ package com.ludwingvasquez.kinalapp.controller;
 
 import com.ludwingvasquez.kinalapp.entity.Usuario;
 import com.ludwingvasquez.kinalapp.service.IUsuarioService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -34,11 +36,10 @@ public class LoginController {
     public String login(@RequestParam(value = "error", required = false) String error,
                         @RequestParam(value = "logout", required = false) String logout,
                         Model model,
-                        @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
+                        @AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails != null) {
             return "redirect:/dashboard";
         }
-        
         if (error != null) {
             model.addAttribute("error", "Usuario o contraseña incorrectos");
         }
@@ -58,25 +59,26 @@ public class LoginController {
     public String registrar(@RequestParam String username,
                            @RequestParam String password,
                            @RequestParam String email,
-                           @RequestParam(value = "rol", required = false, defaultValue = "USER") String rol,
+                           @RequestParam(value = "rol", required = false, defaultValue = "CLIENTE") String rol,
                            Model model,
                            RedirectAttributes redirectAttrs) {
 
-        if (!ROLES_PERMITIDOS.contains(rol.toUpperCase())) {
-            rol = "USER";
+        String rolFinal = rol == null ? "CLIENTE" : rol.toUpperCase();
+        if (!ROLES_PERMITIDOS.contains(rolFinal)) {
+            rolFinal = "CLIENTE";
         }
 
         Optional<Usuario> existente = usuarioService.buscarPorUsername(username);
         if (existente.isPresent()) {
             model.addAttribute("error", "El usuario ya existe en la base de datos");
+            model.addAttribute("roles", ROLES_PERMITIDOS);
             return "registro";
         }
-
         if (password.length() < 8) {
             model.addAttribute("error", "La contraseña debe tener al menos 8 caracteres");
+            model.addAttribute("roles", ROLES_PERMITIDOS);
             return "registro";
         }
-
         if (!email.contains("@") || !email.contains(".")) {
             model.addAttribute("error", "El email debe ser válido (contener @ y .)");
             model.addAttribute("roles", ROLES_PERMITIDOS);
@@ -88,7 +90,7 @@ public class LoginController {
             nuevoUsuario.setUsername(username);
             nuevoUsuario.setPassword(passwordEncoder.encode(password));
             nuevoUsuario.setEmail(email);
-            nuevoUsuario.setRol(rol.toUpperCase());
+            nuevoUsuario.setRol(rolFinal);
             nuevoUsuario.setEstado(1L);
             usuarioService.guardar(nuevoUsuario);
 
