@@ -19,36 +19,26 @@ public class InitialSetupService {
         this.usuarioService = usuarioService;
         this.passwordEncoder = passwordEncoder;
     }
-    
-    /**
-     * Verifica si se requiere configuración inicial
-     */
+
     @Transactional(readOnly = true)
     public boolean requiereConfiguracionInicial() {
         List<Usuario> usuarios = usuarioService.listarTodos();
         return usuarios.isEmpty();
     }
 
-    /**
-     * Crea el primer usuario administrador del sistema
-     */
     public void crearPrimerAdmin(String username, String password, String email) {
         if (!requiereConfiguracionInicial()) {
             throw new IllegalStateException("El sistema ya tiene usuarios configurados");
         }
-
         if (username == null || username.trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre de usuario es obligatorio");
         }
-
         if (password == null || password.trim().isEmpty()) {
             throw new IllegalArgumentException("La contraseña es obligatoria");
         }
-
         if (email == null || email.trim().isEmpty()) {
             throw new IllegalArgumentException("El email es obligatorio");
         }
-
         if (usuarioService.buscarPorUsername(username).isPresent()) {
             throw new IllegalArgumentException("El nombre de usuario ya existe");
         }
