@@ -93,4 +93,11 @@ public class DetalleVenta {
     public void setEstado(Long estado) {
         this.estado = estado;
     }
+
+    public Double getSubtotal() {
+        if (cantidad == null || precioUnitario == null) {
+            return 0.0;
+        }
+        return cantidad * precioUnitario;
+    }
 }

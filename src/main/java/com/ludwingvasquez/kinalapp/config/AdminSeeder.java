@@ -54,5 +54,6 @@ public class AdminSeeder implements CommandLineRunner {
                 usuarioRepository.save(admin);
             }
         );
+
     }
 }

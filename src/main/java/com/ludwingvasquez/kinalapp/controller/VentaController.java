@@ -1,14 +1,20 @@
 package com.ludwingvasquez.kinalapp.controller;
 
 import com.ludwingvasquez.kinalapp.entity.Venta;
+import com.ludwingvasquez.kinalapp.entity.DetalleVenta;
+import com.ludwingvasquez.kinalapp.entity.Producto;
+import com.ludwingvasquez.kinalapp.service.IClienteService;
 import com.ludwingvasquez.kinalapp.service.IUsuarioService;
 import com.ludwingvasquez.kinalapp.service.IVentaService;
+import com.ludwingvasquez.kinalapp.service.IProductoService;
+import com.ludwingvasquez.kinalapp.service.IDetalleVentaService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Controller
@@ -17,10 +23,16 @@ public class VentaController {
 
     private final IVentaService ventaService;
     private final IUsuarioService usuarioService;
+    private final IClienteService clienteService;
+    private final IProductoService productoService;
+    private final IDetalleVentaService detalleVentaService;
 
-    public VentaController(IVentaService ventaService, IUsuarioService usuarioService) {
+    public VentaController(IVentaService ventaService, IUsuarioService usuarioService, IClienteService clienteService, IProductoService productoService, IDetalleVentaService detalleVentaService) {
         this.ventaService = ventaService;
         this.usuarioService = usuarioService;
+        this.clienteService = clienteService;
+        this.productoService = productoService;
+        this.detalleVentaService = detalleVentaService;
     }
 
     @ModelAttribute
@@ -60,8 +72,57 @@ public class VentaController {
                            @RequestParam(name = "periodo", required = false, defaultValue = "semana") String periodo,
                            @RequestParam(name = "tendencia", required = false, defaultValue = "mes") String tendencia) {
         List<Venta> ventas = ventaService.listarTodos();
+        
+        LocalDate hoy = LocalDate.now();
+        double ventasHoy = ventas.stream()
+                .filter(v -> v.getFechaVenta() != null && v.getFechaVenta().isEqual(hoy))
+                .mapToDouble(Venta::getTotal)
+                .sum();
+        long ventasHoyCount = ventas.stream()
+                .filter(v -> v.getFechaVenta() != null && v.getFechaVenta().isEqual(hoy))
+                .count();
+
+        double ventasMes = ventas.stream()
+                .filter(v -> v.getFechaVenta() != null && v.getFechaVenta().getMonth() == hoy.getMonth() && v.getFechaVenta().getYear() == hoy.getYear())
+                .mapToDouble(Venta::getTotal)
+                .sum();
+        long ventasMesCount = ventas.stream()
+                .filter(v -> v.getFechaVenta() != null && v.getFechaVenta().getMonth() == hoy.getMonth() && v.getFechaVenta().getYear() == hoy.getYear())
+                .count();
+
+        double promedioVenta = ventas.isEmpty() ? 0.0 : ventas.stream()
+                .mapToDouble(Venta::getTotal)
+                .average()
+                .orElse(0.0);
+
+        long productosVendidos = ventas.stream()
+                .filter(v -> v.getDetalles() != null)
+                .flatMap(v -> v.getDetalles().stream())
+                .filter(d -> d.getEstado() == null || d.getEstado() == 1L)
+                .mapToLong(d -> d.getCantidad() != null ? d.getCantidad() : 0L)
+                .sum();
+
+        long clientesUnicos = ventas.stream()
+                .filter(v -> v.getCliente() != null)
+                .map(v -> v.getCliente().getDPICliente())
+                .distinct()
+                .count();
+
+        long ventasActivas = ventas.stream()
+                .filter(v -> v.getEstado() != null && v.getEstado() == 1L)
+                .count();
+
         model.addAttribute("ventas", ventas);
         model.addAttribute("totalVentas", ventas.size());
+        model.addAttribute("ventasHoy", ventasHoy);
+        model.addAttribute("ventasHoyCount", ventasHoyCount);
+        model.addAttribute("ventasMes", ventasMes);
+        model.addAttribute("ventasMesCount", ventasMesCount);
+        model.addAttribute("promedioVenta", promedioVenta);
+        model.addAttribute("productosVendidos", productosVendidos);
+        model.addAttribute("clientesUnicos", clientesUnicos);
+        model.addAttribute("ventasActivas", ventasActivas);
+
         model.addAttribute("periodoSeleccionado", periodo);
         model.addAttribute("tendenciaSeleccionada", tendencia);
         return "ventas/dashboard";
@@ -78,6 +139,8 @@ public class VentaController {
     public String nuevo(Model model) {
         model.addAttribute("venta", new Venta());
         model.addAttribute("editar", false);
+        model.addAttribute("clientes", clienteService.listarTodos());
+        model.addAttribute("productos", productoService.listarTodos());
         return "ventas/formulario";
     }
 
@@ -89,9 +152,40 @@ public class VentaController {
     }
 
     @PostMapping
-    public String guardar(@ModelAttribute Venta venta) {
+    public String guardar(@ModelAttribute Venta venta,
+                          @RequestParam(value = "productoId", required = false) List<Integer> productoIds,
+                          @RequestParam(value = "cantidad", required = false) List<Integer> cantidades,
+                          @RequestParam(value = "precioUnitario", required = false) List<Double> preciosUnitarios) {
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+                String nombreUsuario = auth.getName();
+                usuarioService.buscarPorUsername(nombreUsuario).ifPresent(venta::setUsuario);
+            }
             ventaService.guardar(venta);
+
+            if (productoIds != null && !productoIds.isEmpty()) {
+                for (int i = 0; i < productoIds.size(); i++) {
+                    Integer prodId = productoIds.get(i);
+                    if (prodId != null) {
+                        DetalleVenta detalle = new DetalleVenta();
+                        detalle.setVenta(venta);
+                        productoService.buscarPorCodigo(prodId).ifPresent(detalle::setProducto);
+                        
+                        Integer cant = (cantidades != null && cantidades.size() > i) ? cantidades.get(i) : 1;
+                        Double precio = (preciosUnitarios != null && preciosUnitarios.size() > i) ? preciosUnitarios.get(i) : 0.0;
+                        
+                        detalle.setCantidad(cant);
+                        detalle.setPrecioUnitario(precio);
+                        detalle.setEstado(1L);
+                        detalleVentaService.guardar(detalle);
+                    }
+                }
+            }
+
+            if (auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_CLIENTE"))) {
+                return "redirect:/dashboard?success=true";
+            }
             return "redirect:/ventas";
         } catch (Exception e) {
             return "redirect:/ventas/nuevo?error=" + e.getMessage();
@@ -103,12 +197,23 @@ public class VentaController {
         Venta venta = ventaService.buscarCV(codigoVenta).orElse(null);
         model.addAttribute("venta", venta);
         model.addAttribute("editar", true);
+        model.addAttribute("clientes", clienteService.listarTodos());
         return "ventas/formulario";
     }
 
     @PostMapping("/actualizar/{codigoVenta}")
     public String actualizar(@PathVariable Long codigoVenta, @ModelAttribute Venta venta) {
         try {
+            Venta ventaOriginal = ventaService.buscarCV(codigoVenta).orElse(null);
+            if (ventaOriginal != null) {
+                venta.setUsuario(ventaOriginal.getUsuario());
+                if (venta.getFechaVenta() == null) {
+                    venta.setFechaVenta(ventaOriginal.getFechaVenta());
+                }
+                if (venta.getEstado() == null) {
+                    venta.setEstado(ventaOriginal.getEstado());
+                }
+            }
             ventaService.actualizar(codigoVenta, venta);
             return "redirect:/ventas";
         } catch (Exception e) {

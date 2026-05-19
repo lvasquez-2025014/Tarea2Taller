@@ -364,8 +364,16 @@
       </header>
 
       <div class="content">
-        <h2 style="font-family:'Cinzel',serif;font-size:1.6rem;font-weight:700;color:var(--text-primary);margin-bottom:6px;letter-spacing:1px;">Panel de Ventas</h2>
-        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:24px;">Ventas / Estadísticas y Transacciones</p>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+          <div>
+            <h2 style="font-family:'Cinzel',serif;font-size:1.6rem;font-weight:700;color:var(--text-primary);margin-bottom:6px;letter-spacing:1px;">Panel de Ventas</h2>
+            <p style="font-size:0.8rem;color:var(--text-muted);">Ventas / Estadísticas y Transacciones</p>
+          </div>
+          <a th:href="@{/ventas/nuevo}" class="btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: linear-gradient(135deg, var(--gold-dark), var(--gold)); border: none; border-radius: 8px; color: var(--navy-deep); font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.2s; box-shadow: 0 4px 12px rgba(201, 168, 76, 0.2);">
+            <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Registrar Nueva Venta
+          </a>
+        </div>
 
         <!-- Finance Cards -->
         <div class="finance-cards">
@@ -456,7 +464,7 @@
                       <td th:text="'#' + ${venta.codigoVenta}">#001234</td>
                       <td th:text="${venta.cliente?.nombreCliente} + ' ' + ${venta.cliente?.apellidoCliente}">Juan Pérez</td>
                       <td th:text="${#temporals.format(venta.fechaVenta, 'dd/MM/yyyy')}">14/04/2026</td>
-                      <td class="price" th:text="'Q' + ${#numbers.formatDecimal(venta.detalles != null ? venta.detalles.^[true].![cantidad * precioUnitario].stream().mapToDouble(x -> x).sum() : 0, 0, 2)}">Q1,250.00</td>
+                      <td class="price" th:text="'Q' + ${#numbers.formatDecimal(venta.total != null ? venta.total : 0, 1, 2)}">Q1,250.00</td>
                       <td>
                         <span class="status-badge" th:class="${venta.estado == 1 ? 'status-badge active' : 'status-badge inactive'}">
                           <span class="status-dot-sm"></span>
@@ -586,13 +594,13 @@
                 <div class="quick-action-icon" style="background:linear-gradient(135deg,var(--gold-dark),var(--gold));">
                   <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
                 </div>
-                <span class="quick-action-label">Nueva Venta</span>
+                <span class="quick-action-label">Nueva Compra</span>
               </a>
               <a th:href="@{/ventas}" class="quick-action-btn" style="text-decoration:none;">
                 <div class="quick-action-icon" style="background:linear-gradient(135deg,var(--flame-dark),var(--flame));">
                   <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
                 </div>
-                <span class="quick-action-label">Lista de Ventas</span>
+                <span class="quick-action-label">Lista de Compras</span>
               </a>
             </div>
           </div>

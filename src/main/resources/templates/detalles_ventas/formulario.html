@@ -172,11 +172,11 @@
             <input type="text" id="codigo" th:field="*{codigoDetalle}" readonly>
           </div>
 
-          <div class="form-group">
+           <div class="form-group">
             <label for="venta">Venta *</label>
             <select id="venta" name="venta" required>
               <option value="">Seleccionar venta</option>
-              <option th:each="v : ${ventas}" th:value="${v.codigoVenta}" th:text="'#' + ${v.codigoVenta} + ' - ' + ${v.cliente != null} ? ${v.cliente.nombreCliente} : 'Sin cliente'" th:selected="${detalle.venta != null && detalle.venta.codigoVenta == v.codigoVenta}"></option>
+              <option th:each="v : ${ventas}" th:value="${v.codigoVenta}" th:text="'#' + ${v.codigoVenta} + ' - ' + (${v.cliente != null} ? (${v.cliente.nombreCliente} + ' ' + ${v.cliente.apellidoCliente}) : 'Sin cliente')" th:selected="${detalle.venta != null && detalle.venta.codigoVenta == v.codigoVenta}"></option>
             </select>
           </div>
 

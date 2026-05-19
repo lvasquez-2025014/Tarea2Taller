@@ -10,4 +10,5 @@ public class ErrorController {
     public String accesoDenegado() {
         return "acceso-denegado";
     }
+
 }

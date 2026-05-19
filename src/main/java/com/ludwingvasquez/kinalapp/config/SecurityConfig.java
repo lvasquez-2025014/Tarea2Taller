@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.http.HttpMethod;
 
 @Configuration
 @EnableWebSecurity
@@ -33,6 +34,8 @@ public class SecurityConfig {
 
                 .requestMatchers("/usuarios/**").hasRole("ADMIN")
 
+                .requestMatchers(HttpMethod.POST, "/productos").hasAnyRole("ADMIN", "USER")
+                .requestMatchers(HttpMethod.POST, "/productos/**").hasAnyRole("ADMIN", "USER")
                 .requestMatchers("/productos/nuevo", "/productos/editar/**", "/productos/eliminar/**",
                                  "/productos/actualizar/**", "/productos/exportar/**").hasAnyRole("ADMIN", "USER")
                 .requestMatchers("/productos", "/productos/", "/productos/dashboard", "/productos/{id:[0-9]+}")
@@ -40,7 +43,8 @@ public class SecurityConfig {
 
                 .requestMatchers("/clientes/**").hasAnyRole("ADMIN", "USER")
 
-                .requestMatchers("/ventas/nueva", "/ventas/guardar", "/ventas/mis-ventas/**")
+                .requestMatchers(HttpMethod.POST, "/ventas").hasAnyRole("ADMIN", "USER", "CLIENTE")
+                .requestMatchers("/ventas/nuevo", "/ventas/guardar", "/ventas/mis-ventas/**")
                     .hasAnyRole("ADMIN", "USER", "CLIENTE")
                 .requestMatchers("/ventas/editar/**", "/ventas/eliminar/**", "/ventas/actualizar/**")
                     .hasRole("ADMIN")

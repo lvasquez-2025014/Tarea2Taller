@@ -2,6 +2,7 @@ package com.ludwingvasquez.kinalapp.service;
 
 import com.ludwingvasquez.kinalapp.entity.Usuario;
 import com.ludwingvasquez.kinalapp.repository.UsuarioRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,12 +10,14 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class UsuarioService implements IUsuarioService {
+public class    UsuarioService implements IUsuarioService {
 
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UsuarioService(UsuarioRepository usuarioRepository) {
+    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -36,18 +39,30 @@ public class UsuarioService implements IUsuarioService {
             usuario.setEstado(1L);
         }
         validarUsuario(usuario);
+        
+        if (!isBCryptHash(usuario.getPassword())) {
+            usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+        }
+        
         return usuarioRepository.save(usuario);
     }
 
     @Override
     @Transactional
     public Usuario actualizar(Long codigoUsuario, Usuario usuario) {
-        if (!usuarioRepository.existsById(codigoUsuario)) {
-            throw new RuntimeException("El usuario no se encontró con el código: " + codigoUsuario);
+        Usuario existente = usuarioRepository.findById(codigoUsuario)
+                .orElseThrow(() -> new RuntimeException("El usuario no se encontró con el código: " + codigoUsuario));
+
+        if (usuario.getPassword() == null || usuario.getPassword().trim().isEmpty()) {
+            usuario.setPassword(existente.getPassword());
         }
 
         usuario.setCodigoUsuario(codigoUsuario);
         validarUsuario(usuario);
+
+        if (!isBCryptHash(usuario.getPassword())) {
+            usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+        }
 
         return usuarioRepository.save(usuario);
     }
@@ -88,5 +103,10 @@ public class UsuarioService implements IUsuarioService {
 
         Optional.ofNullable(usuario.getEstado())
                 .orElseThrow(() -> new IllegalArgumentException("El estado del usuario es un campo obligatorio"));
+    }
+
+    private boolean isBCryptHash(String password) {
+        if (password == null) return false;
+        return password.length() == 60 && (password.startsWith("$2a$") || password.startsWith("$2b$") || password.startsWith("$2y$"));
     }
 }

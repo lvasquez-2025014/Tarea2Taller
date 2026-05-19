@@ -43,6 +43,7 @@ public class InitialSetupService {
             throw new IllegalArgumentException("El nombre de usuario ya existe");
         }
 
+
         Usuario admin = new Usuario();
         admin.setUsername(username);
         admin.setPassword(passwordEncoder.encode(password));

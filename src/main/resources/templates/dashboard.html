@@ -199,19 +199,11 @@
     }
 
     /* Active state via radio */
-    #view-dashboard:checked ~ .dashboard .sidebar .nav-item[data-target="dashboard"],
-    #view-analiticas:checked ~ .dashboard .sidebar .nav-item[data-target="analiticas"],
-    #view-rendimiento:checked ~ .dashboard .sidebar .nav-item[data-target="rendimiento"],
-    #view-seguridad:checked ~ .dashboard .sidebar .nav-item[data-target="seguridad"],
-    #view-configuracion:checked ~ .dashboard .sidebar .nav-item[data-target="configuracion"] {
+    #view-dashboard:checked ~ .dashboard .sidebar .nav-item[data-target="dashboard"] {
       background: linear-gradient(90deg, rgba(201, 168, 76, 0.15) 0%, transparent 100%);
       color: var(--gold);
     }
-    #view-dashboard:checked ~ .dashboard .sidebar .nav-item[data-target="dashboard"]::before,
-    #view-analiticas:checked ~ .dashboard .sidebar .nav-item[data-target="analiticas"]::before,
-    #view-rendimiento:checked ~ .dashboard .sidebar .nav-item[data-target="rendimiento"]::before,
-    #view-seguridad:checked ~ .dashboard .sidebar .nav-item[data-target="seguridad"]::before,
-    #view-configuracion:checked ~ .dashboard .sidebar .nav-item[data-target="configuracion"]::before {
+    #view-dashboard:checked ~ .dashboard .sidebar .nav-item[data-target="dashboard"]::before {
       content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
       width: 3px; height: 60%; background: linear-gradient(180deg, var(--gold), var(--flame));
       border-radius: 0 2px 2px 0;
@@ -298,21 +290,8 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    #view-dashboard:checked ~ .dashboard .main-content .content .view-dashboard,
-    #view-analiticas:checked ~ .dashboard .main-content .content .view-analiticas,
-    #view-rendimiento:checked ~ .dashboard .main-content .content .view-rendimiento,
-    #view-seguridad:checked ~ .dashboard .main-content .content .view-seguridad,
-    #view-configuracion:checked ~ .dashboard .main-content .content .view-configuracion {
-      display: block;
-    }
-
-    .view-title, .view-breadcrumb { display: none; }
-    .view-dashboard .view-title, .view-dashboard .view-breadcrumb,
-    .view-analiticas .view-title, .view-analiticas .view-breadcrumb,
-    .view-rendimiento .view-title, .view-rendimiento .view-breadcrumb,
-    .view-seguridad .view-title, .view-seguridad .view-breadcrumb,
-    .view-configuracion .view-title, .view-configuracion .view-breadcrumb {
-      display: block;
+    #view-dashboard:checked ~ .dashboard .view-dashboard {
+      display: block !important;
     }
 
     /* ==================== STATS CARDS ==================== */
@@ -769,10 +748,6 @@
 <body>
 
   <input type="radio" name="view" id="view-dashboard" class="view-radio" checked>
-  <input type="radio" name="view" id="view-analiticas" class="view-radio">
-  <input type="radio" name="view" id="view-rendimiento" class="view-radio">
-  <input type="radio" name="view" id="view-seguridad" class="view-radio">
-  <input type="radio" name="view" id="view-configuracion" class="view-radio">
 
   <div class="bg-layer">
     <div class="bg-gradient"></div>
@@ -822,6 +797,10 @@
             <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span>
             Productos
           </a>
+          <a sec:authorize="hasRole('CLIENTE')" th:href="@{/ventas/nuevo}" class="nav-item" style="text-decoration:none;">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg></span>
+            Comprar / Nueva Venta
+          </a>
           <a sec:authorize="hasAnyRole('ADMIN','USER')" th:href="@{/clientes/dashboard}" class="nav-item" style="text-decoration:none;">
             <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>
             Clientes
@@ -840,25 +819,6 @@
               Usuarios
             </a>
           </th:block>
-          <label for="view-analiticas" class="nav-item" data-target="analiticas">
-            <span class="nav-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
-            Analíticas
-          </label>
-        </div>
-        <div class="nav-section">
-          <div class="nav-section-title">Sistema</div>
-          <label for="view-rendimiento" class="nav-item" data-target="rendimiento">
-            <span class="nav-icon"><svg viewBox="0 0 24 24"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg></span>
-            Rendimiento
-          </label>
-          <label for="view-seguridad" class="nav-item" data-target="seguridad">
-            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
-            Seguridad
-          </label>
-          <label for="view-configuracion" class="nav-item" data-target="configuracion">
-            <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>
-            Configuración
-          </label>
         </div>
       </nav>
 
@@ -1094,306 +1054,6 @@
                     <span class="quick-action-label">Dashboard de Usuarios</span>
                   </a>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ==================== VIEW: ANALÍTICAS ==================== -->
-        <div class="view-panel view-analiticas">
-          <h2 class="view-title" style="font-family:'Cinzel',serif;font-size:1.6rem;font-weight:700;color:var(--text-primary);margin-bottom:6px;letter-spacing:1px;">Analíticas</h2>
-          <p class="view-breadcrumb" style="font-size:0.8rem;color:var(--text-muted);margin-bottom:24px;">Reportes / Analíticas</p>
-
-          <div class="analytics-grid">
-            <div class="analytics-card">
-              <div class="ac-header"><span class="ac-title">Páginas Vistas</span><span class="ac-change up">▲ 24.5%</span></div>
-              <div class="ac-value">48,234</div>
-              <div class="mini-chart">
-                <div class="mini-bar gold" style="height:40%"></div><div class="mini-bar gold" style="height:55%"></div><div class="mini-bar gold" style="height:45%"></div><div class="mini-bar gold" style="height:70%"></div><div class="mini-bar gold" style="height:60%"></div><div class="mini-bar gold" style="height:80%"></div><div class="mini-bar gold" style="height:75%"></div><div class="mini-bar gold" style="height:90%"></div><div class="mini-bar gold" style="height:85%"></div><div class="mini-bar gold" style="height:95%"></div><div class="mini-bar gold" style="height:100%"></div><div class="mini-bar gold" style="height:88%"></div>
-              </div>
-            </div>
-            <div class="analytics-card">
-              <div class="ac-header"><span class="ac-title">Tasa de Conversión</span><span class="ac-change up">▲ 3.2%</span></div>
-              <div class="ac-value">4.8%</div>
-              <div class="mini-chart">
-                <div class="mini-bar flame" style="height:30%"></div><div class="mini-bar flame" style="height:45%"></div><div class="mini-bar flame" style="height:35%"></div><div class="mini-bar flame" style="height:50%"></div><div class="mini-bar flame" style="height:55%"></div><div class="mini-bar flame" style="height:60%"></div><div class="mini-bar flame" style="height:65%"></div><div class="mini-bar flame" style="height:58%"></div><div class="mini-bar flame" style="height:70%"></div><div class="mini-bar flame" style="height:75%"></div><div class="mini-bar flame" style="height:80%"></div><div class="mini-bar flame" style="height:78%"></div>
-              </div>
-            </div>
-            <div class="analytics-card">
-              <div class="ac-header"><span class="ac-title">Tiempo Promedio</span><span class="ac-change down">▼ 1.2%</span></div>
-              <div class="ac-value">3:42</div>
-              <div class="mini-chart">
-                <div class="mini-bar green" style="height:80%"></div><div class="mini-bar green" style="height:75%"></div><div class="mini-bar green" style="height:70%"></div><div class="mini-bar green" style="height:85%"></div><div class="mini-bar green" style="height:60%"></div><div class="mini-bar green" style="height:55%"></div><div class="mini-bar green" style="height:50%"></div><div class="mini-bar green" style="height:65%"></div><div class="mini-bar green" style="height:45%"></div><div class="mini-bar green" style="height:40%"></div><div class="mini-bar green" style="height:50%"></div><div class="mini-bar green" style="height:48%"></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="dashboard-grid">
-            <div class="card">
-              <div class="card-header"><div><div class="card-title">Tráfico por Fuente</div><div class="card-subtitle">Distribución mensual</div></div></div>
-              <div class="card-body">
-                <div class="chart-container">
-                  <svg class="chart-svg" viewBox="0 0 600 260" preserveAspectRatio="none">
-                    <line class="chart-grid-line" x1="40" y1="30" x2="580" y2="30"/><line class="chart-grid-line" x1="40" y1="80" x2="580" y2="80"/><line class="chart-grid-line" x1="40" y1="130" x2="580" y2="130"/><line class="chart-grid-line" x1="40" y1="180" x2="580" y2="180"/><line class="chart-grid-line" x1="40" y1="230" x2="580" y2="230"/>
-                    <text class="chart-label" x="35" y="34" text-anchor="end">10K</text><text class="chart-label" x="35" y="84" text-anchor="end">8K</text><text class="chart-label" x="35" y="134" text-anchor="end">6K</text><text class="chart-label" x="35" y="184" text-anchor="end">4K</text><text class="chart-label" x="35" y="234" text-anchor="end">2K</text>
-                    <text class="chart-label" x="60" y="250" text-anchor="middle">Lun</text><text class="chart-label" x="130" y="250" text-anchor="middle">Mar</text><text class="chart-label" x="200" y="250" text-anchor="middle">Mié</text><text class="chart-label" x="270" y="250" text-anchor="middle">Jue</text><text class="chart-label" x="340" y="250" text-anchor="middle">Vie</text><text class="chart-label" x="410" y="250" text-anchor="middle">Sáb</text><text class="chart-label" x="480" y="250" text-anchor="middle">Dom</text>
-                    <path class="chart-area" d="M60,150 L130,120 L200,140 L270,80 L340,100 L410,60 L480,70 L550,40 L550,230 L60,230 Z"/>
-                    <path class="chart-line" d="M60,150 L130,120 L200,140 L270,80 L340,100 L410,60 L480,70 L550,40"/>
-                    <circle class="chart-dot" cx="60" cy="150" r="4"/><circle class="chart-dot" cx="130" cy="120" r="4"/><circle class="chart-dot" cx="200" cy="140" r="4"/><circle class="chart-dot" cx="270" cy="80" r="4"/><circle class="chart-dot" cx="340" cy="100" r="4"/><circle class="chart-dot" cx="410" cy="60" r="4"/><circle class="chart-dot" cx="480" cy="70" r="4"/><circle class="chart-dot" cx="550" cy="40" r="4"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-header"><div><div class="card-title">Top Páginas</div><div class="card-subtitle">Más visitadas</div></div></div>
-              <div class="card-body" style="padding:0;">
-                <table class="data-table">
-                  <thead><tr><th>Página</th><th>Vistas</th><th>Bounce</th></tr></thead>
-                  <tbody>
-                    <tr><td style="color:var(--text-primary);font-weight:600;">/dashboard</td><td>12,450</td><td><span style="color:var(--success);">18%</span></td></tr>
-                    <tr><td style="color:var(--text-primary);font-weight:600;">/inicio</td><td>9,820</td><td><span style="color:var(--warning);">32%</span></td></tr>
-                    <tr><td style="color:var(--text-primary);font-weight:600;">/precios</td><td>7,340</td><td><span style="color:var(--success);">22%</span></td></tr>
-                    <tr><td style="color:var(--text-primary);font-weight:600;">/blog</td><td>5,210</td><td><span style="color:var(--error);">58%</span></td></tr>
-                    <tr><td style="color:var(--text-primary);font-weight:600;">/contacto</td><td>3,890</td><td><span style="color:var(--success);">15%</span></td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ==================== VIEW: RENDIMIENTO ==================== -->
-        <div class="view-panel view-rendimiento">
-          <h2 class="view-title" style="font-family:'Cinzel',serif;font-size:1.6rem;font-weight:700;color:var(--text-primary);margin-bottom:6px;letter-spacing:1px;">Rendimiento del Sistema</h2>
-          <p class="view-breadcrumb" style="font-size:0.8rem;color:var(--text-muted);margin-bottom:24px;">Sistema / Rendimiento</p>
-
-          <div class="perf-grid">
-            <div class="perf-card">
-              <div class="perf-header">
-                <div><div class="perf-title">Uso de CPU</div><div class="perf-subtitle">Tiempo real</div></div>
-                <div class="perf-value" style="color:var(--gold);">67%</div>
-              </div>
-              <div class="perf-meter"><div class="perf-meter-fill gold" style="width:67%"></div></div>
-              <div class="perf-details">
-                <div class="perf-detail"><div class="perf-detail-label">Mín</div><div class="perf-detail-value">12%</div></div>
-                <div class="perf-detail"><div class="perf-detail-label">Prom</div><div class="perf-detail-value">45%</div></div>
-                <div class="perf-detail"><div class="perf-detail-label">Máx</div><div class="perf-detail-value">89%</div></div>
-                <div class="perf-detail"><div class="perf-detail-label">Núcleos</div><div class="perf-detail-value">8</div></div>
-              </div>
-            </div>
-            <div class="perf-card">
-              <div class="perf-header">
-                <div><div class="perf-title">Memoria RAM</div><div class="perf-subtitle">16 GB Total</div></div>
-                <div class="perf-value" style="color:var(--success);">11.2 GB</div>
-              </div>
-              <div class="perf-meter"><div class="perf-meter-fill green" style="width:70%"></div></div>
-              <div class="perf-details">
-                <div class="perf-detail"><div class="perf-detail-label">Usada</div><div class="perf-detail-value">11.2 GB</div></div>
-                <div class="perf-detail"><div class="perf-detail-label">Cache</div><div class="perf-detail-value">2.1 GB</div></div>
-                <div class="perf-detail"><div class="perf-detail-label">Libre</div><div class="perf-detail-value">2.7 GB</div></div>
-                <div class="perf-detail"><div class="perf-detail-label">Swap</div><div class="perf-detail-value">0.4 GB</div></div>
-              </div>
-            </div>
-            <div class="perf-card">
-              <div class="perf-header">
-                <div><div class="perf-title">Red</div><div class="perf-subtitle">Ancho de banda</div></div>
-                <div class="perf-value" style="color:var(--info);">245 MB/s</div>
-              </div>
-              <div class="perf-meter"><div class="perf-meter-fill blue" style="width:49%"></div></div>
-              <div class="perf-details">
-                <div class="perf-detail"><div class="perf-detail-label">Entrada</div><div class="perf-detail-value">120 MB/s</div></div>
-                <div class="perf-detail"><div class="perf-detail-label">Salida</div><div class="perf-detail-value">125 MB/s</div></div>
-                <div class="perf-detail"><div class="perf-detail-label">Latencia</div><div class="perf-detail-value">12ms</div></div>
-                <div class="perf-detail"><div class="perf-detail-label">Pérdida</div><div class="perf-detail-value">0.01%</div></div>
-              </div>
-            </div>
-            <div class="perf-card">
-              <div class="perf-header">
-                <div><div class="perf-title">Disco</div><div class="perf-subtitle">SSD NVMe 1TB</div></div>
-                <div class="perf-value" style="color:var(--flame);">62%</div>
-              </div>
-              <div class="perf-meter"><div class="perf-meter-fill flame" style="width:62%"></div></div>
-              <div class="perf-details">
-                <div class="perf-detail"><div class="perf-detail-label">Usado</div><div class="perf-detail-value">620 GB</div></div>
-                <div class="perf-detail"><div class="perf-detail-label">Libre</div><div class="perf-detail-value">380 GB</div></div>
-                <div class="perf-detail"><div class="perf-detail-label">Lectura</div><div class="perf-detail-value">2.1 GB/s</div></div>
-                <div class="perf-detail"><div class="perf-detail-label">Escritura</div><div class="perf-detail-value">1.8 GB/s</div></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-header">
-              <div><div class="card-title">Uptime del Servidor</div><div class="card-subtitle">Últimos 30 días</div></div>
-              <div class="card-actions"><button class="card-action-btn active">30 días</button><button class="card-action-btn">90 días</button></div>
-            </div>
-            <div class="card-body">
-              <div style="display:flex;align-items:center;gap:24px;">
-                <div style="text-align:center;">
-                  <div style="font-family:'Cinzel',serif;font-size:2.5rem;font-weight:700;color:var(--success);">99.97%</div>
-                  <div style="font-size:0.78rem;color:var(--text-muted);">Uptime Total</div>
-                </div>
-                <div style="flex:1;">
-                  <div class="uptime-bars">
-                    <div class="uptime-bar perfect" title="Día 1: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 2: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 3: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 4: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 5: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 6: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 7: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 8: 100%"></div>
-                    <div class="uptime-bar minor" title="Día 9: Mantenimiento"></div>
-                    <div class="uptime-bar perfect" title="Día 10: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 11: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 12: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 13: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 14: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 15: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 16: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 17: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 18: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 19: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 20: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 21: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 22: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 23: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 24: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 25: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 26: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 27: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 28: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 29: 100%"></div>
-                    <div class="uptime-bar perfect" title="Día 30: 100%"></div>
-                  </div>
-                  <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:0.68rem;color:var(--text-dim);">
-                    <span>Hace 30 días</span><span>Hoy</span> 
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ==================== VIEW: SEGURIDAD ==================== -->
-        <div class="view-panel view-seguridad">
-          <h2 class="view-title" style="font-family:'Cinzel',serif;font-size:1.6rem;font-weight:700;color:var(--text-primary);margin-bottom:6px;letter-spacing:1px;">Seguridad</h2>
-          <p class="view-breadcrumb" style="font-size:0.8rem;color:var(--text-muted);margin-bottom:24px;">Sistema / Seguridad</p>
-
-          <div class="security-grid">
-            <div class="security-card">
-              <div class="sc-header">
-                <div class="sc-icon success"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9,12 12,15 17,10"/></svg></div>
-                <div><div class="sc-title">Autenticación de Dos Factores</div><div class="sc-subtitle">2FA Activado</div></div>
-              </div>
-              <div class="sc-body">La autenticación de dos factores está activada para tu cuenta. Esto añade una capa extra de seguridad.</div>
-              <button class="sc-action">Configurar 2FA</button>
-            </div>
-            <div class="security-card">
-              <div class="sc-header">
-                <div class="sc-icon gold"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
-                <div><div class="sc-title">Contraseña</div><div class="sc-subtitle">Último cambio: hace 15 días</div></div>
-              </div>
-              <div class="sc-body">Te recomendamos cambiar tu contraseña cada 90 días para mantener la seguridad de tu cuenta.</div>
-              <button class="sc-action">Cambiar Contraseña</button>
-            </div>
-            <div class="security-card">
-              <div class="sc-header">
-                <div class="sc-icon warning"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-                <div><div class="sc-title">Sesiones Activas</div><div class="sc-subtitle">3 sesiones detectadas</div></div>
-              </div>
-              <div class="sc-body">Tienes 3 sesiones activas en diferentes dispositivos. Revisa y cierra las sesiones que no reconozcas.</div>
-              <button class="sc-action">Ver Sesiones</button>
-            </div>
-            <div class="security-card">
-              <div class="sc-header">
-                <div class="sc-icon danger"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
-                <div><div class="sc-title">Intentos de Acceso</div><div class="sc-subtitle">2 intentos fallidos hoy</div></div>
-              </div>
-              <div class="sc-body">Se detectaron 2 intentos de acceso fallidos desde una IP desconocida. Revisa el registro de auditoría.</div>
-              <button class="sc-action">Ver Registro</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- ==================== VIEW: CONFIGURACIÓN ==================== -->
-        <div class="view-panel view-configuracion">
-          <h2 class="view-title" style="font-family:'Cinzel',serif;font-size:1.6rem;font-weight:700;color:var(--text-primary);margin-bottom:6px;letter-spacing:1px;">Configuración</h2>
-          <p class="view-breadcrumb" style="font-size:0.8rem;color:var(--text-muted);margin-bottom:24px;">Sistema / Configuración</p>
-
-          <div class="settings-section">
-            <div class="settings-section-title">Preferencias Generales</div>
-            <div class="setting-row">
-              <div class="setting-info">
-                <div class="setting-label">Notificaciones por Email</div>
-                <div class="setting-desc">Recibir notificaciones importantes por correo electrónico</div>
-              </div>
-              <div class="toggle-switch active"></div>
-            </div>
-            <div class="setting-row">
-              <div class="setting-info">
-                <div class="setting-label">Modo Oscuro</div>
-                <div class="setting-desc">Activar tema oscuro para la interfaz</div>
-              </div>
-              <div class="toggle-switch active"></div>
-            </div>
-            <div class="setting-row">
-              <div class="setting-info">
-                <div class="setting-label">Sonidos del Sistema</div>
-                <div class="setting-desc">Reproducir sonidos para notificaciones y alertas</div>
-              </div>
-              <div class="toggle-switch"></div>
-            </div>
-          </div>
-
-          <div class="settings-section">
-            <div class="settings-section-title">Privacidad y Seguridad</div>
-            <div class="setting-row">
-              <div class="setting-info">
-                <div class="setting-label">Actividad de Inicio de Sesión</div>
-                <div class="setting-desc">Recibir alertas cuando se detecte un nuevo inicio de sesión</div>
-              </div>
-              <div class="toggle-switch active"></div>
-            </div>
-            <div class="setting-row">
-              <div class="setting-info">
-                <div class="setting-label">Autenticación de Dos Factores</div>
-                <div class="setting-desc">Requerir código adicional para iniciar sesión</div>
-              </div>
-              <div class="toggle-switch active"></div>
-            </div>
-            <div class="setting-row">
-              <div class="setting-info">
-                <div class="setting-label">Compartir Datos de Uso</div>
-                <div class="setting-desc">Permitir recopilar datos anónimos para mejorar el sistema</div>
-              </div>
-              <div class="toggle-switch"></div>
-            </div>
-          </div>
-
-          <div class="settings-section">
-            <div class="settings-section-title">Personalización</div>
-            <div class="setting-row" style="flex-direction:column;align-items:flex-start;">
-              <div class="setting-info" style="margin-bottom:12px;">
-                <div class="setting-label">Paleta de Colores</div>
-                <div class="setting-desc">Selecciona el tema de colores para toda la aplicación</div>
-              </div>
-              <div class="color-palette" style="display:flex;gap:12px;flex-wrap:wrap;">
-                <button class="theme-btn active" data-theme="default" style="width:50px;height:50px;border-radius:50%;border:3px solid var(--gold);background:linear-gradient(135deg,#c9a84c,#e85d26);cursor:pointer;position:relative;">
-                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="white" fill="none" stroke-width="3" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:block;"><polyline points="20 6 9 17 4 12"/></svg>
-                </button>
-                <button class="theme-btn" data-theme="ocean" style="width:50px;height:50px;border-radius:50%;border:3px solid transparent;background:linear-gradient(135deg,#06b6d4,#3b82f6);cursor:pointer;position:relative;">
-                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="white" fill="none" stroke-width="3" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:none;"><polyline points="20 6 9 17 4 12"/></svg>
-                </button>
-                <button class="theme-btn" data-theme="forest" style="width:50px;height:50px;border-radius:50%;border:3px solid transparent;background:linear-gradient(135deg,#22c55e,#16a34a);cursor:pointer;position:relative;">
-                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="white" fill="none" stroke-width="3" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:none;"><polyline points="20 6 9 17 4 12"/></svg>
-                </button>
-                <button class="theme-btn" data-theme="purple" style="width:50px;height:50px;border-radius:50%;border:3px solid transparent;background:linear-gradient(135deg,#a855f7,#7c3aed);cursor:pointer;position:relative;">
-                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="white" fill="none" stroke-width="3" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:none;"><polyline points="20 6 9 17 4 12"/></svg>
-                </button>
-                <button class="theme-btn" data-theme="monochrome" style="width:50px;height:50px;border-radius:50%;border:3px solid transparent;background:linear-gradient(135deg,#9ca3af,#4b5563);cursor:pointer;position:relative;">
-                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="white" fill="none" stroke-width="3" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:none;"><polyline points="20 6 9 17 4 12"/></svg>
-                </button>
               </div>
             </div>
           </div>

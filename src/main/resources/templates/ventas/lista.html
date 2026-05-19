@@ -305,7 +305,7 @@
               <tr th:each="venta : ${ventas}">
                 <td>
                   <span class="sale-id" th:text="'#' + ${venta.codigoVenta}"></span>
-                  <div class="sale-date" th:text="${#temporals.format(venta.fechaVenta, 'dd/MM/yyyy HH:mm')}"></div>
+                  <div class="sale-date" th:text="${#temporals.format(venta.fechaVenta, 'dd/MM/yyyy')}"></div>
                 </td>
                 <td th:text="${#temporals.format(venta.fechaVenta, 'dd/MM/yyyy')}"></td>
                 <td th:text="${venta.cliente != null} ? ${venta.cliente.nombreCliente + ' ' + venta.cliente.apellidoCliente} : 'Sin cliente'"></td>

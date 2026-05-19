@@ -46,6 +46,10 @@ public class HomeController {
         String rolUsuario = userDetails != null ? 
             userDetails.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "") : "USER";
         
+        if ("CLIENTE".equals(rolUsuario)) {
+            return "redirect:/productos/dashboard";
+        }
+        
         Optional<Usuario> usuarioOpt = usuarioService.buscarPorUsername(nombreUsuario);
         String emailUsuario = usuarioOpt.map(Usuario::getEmail).orElse("");
         

@@ -94,4 +94,20 @@ public class Venta {
     public void setDetalles(List<DetalleVenta> detalles) {
         this.detalles = detalles;
     }
+
+    public Double getTotal() {
+        if (detalles == null || detalles.isEmpty()) {
+            return 0.0;
+        }
+        return detalles.stream()
+                .filter(d -> d.getEstado() == null || d.getEstado() == 1L)
+                .mapToDouble(d -> {
+                    Double sub = 0.0;
+                    if (d.getCantidad() != null && d.getPrecioUnitario() != null) {
+                        sub = d.getCantidad() * d.getPrecioUnitario();
+                    }
+                    return sub;
+                })
+                .sum();
+    }
 }

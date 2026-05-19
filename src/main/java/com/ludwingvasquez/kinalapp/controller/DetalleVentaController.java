@@ -3,6 +3,8 @@ package com.ludwingvasquez.kinalapp.controller;
 import com.ludwingvasquez.kinalapp.entity.DetalleVenta;
 import com.ludwingvasquez.kinalapp.service.IDetalleVentaService;
 import com.ludwingvasquez.kinalapp.service.IUsuarioService;
+import com.ludwingvasquez.kinalapp.service.IVentaService;
+import com.ludwingvasquez.kinalapp.service.IProductoService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -17,10 +19,14 @@ public class DetalleVentaController {
 
     private final IDetalleVentaService detalleVentaService;
     private final IUsuarioService usuarioService;
+    private final IVentaService ventaService;
+    private final IProductoService productoService;
 
-    public DetalleVentaController(IDetalleVentaService detalleVentaService, IUsuarioService usuarioService) {
+    public DetalleVentaController(IDetalleVentaService detalleVentaService, IUsuarioService usuarioService, IVentaService ventaService, IProductoService productoService) {
         this.detalleVentaService = detalleVentaService;
         this.usuarioService = usuarioService;
+        this.ventaService = ventaService;
+        this.productoService = productoService;
     }
 
     @ModelAttribute
@@ -63,9 +69,15 @@ public class DetalleVentaController {
     }
 
     @GetMapping("/nuevo")
-    public String nuevo(Model model) {
-        model.addAttribute("detalle", new DetalleVenta());
+    public String nuevo(@RequestParam(required = false) Long ventaId, Model model) {
+        DetalleVenta detalle = new DetalleVenta();
+        if (ventaId != null) {
+            ventaService.buscarCV(ventaId).ifPresent(detalle::setVenta);
+        }
+        model.addAttribute("detalle", detalle);
         model.addAttribute("editar", false);
+        model.addAttribute("ventas", ventaService.listarTodos());
+        model.addAttribute("productos", productoService.listarTodos());
         return "detalles_ventas/formulario";
     }
 
@@ -88,6 +100,9 @@ public class DetalleVentaController {
     public String guardar(@ModelAttribute DetalleVenta detalle) {
         try {
             detalleVentaService.guardar(detalle);
+            if (detalle.getVenta() != null) {
+                return "redirect:/ventas/" + detalle.getVenta().getCodigoVenta();
+            }
             return "redirect:/detalles_ventas";
         } catch (RuntimeException e) {
             return "redirect:/detalles_ventas/nuevo?error=" + e.getMessage();
@@ -99,13 +114,19 @@ public class DetalleVentaController {
         DetalleVenta detalle = detalleVentaService.buscarPorId(codigoDetalle).orElse(null);
         model.addAttribute("detalle", detalle);
         model.addAttribute("editar", true);
+        model.addAttribute("ventas", ventaService.listarTodos());
+        model.addAttribute("productos", productoService.listarTodos());
         return "detalles_ventas/formulario";
     }
 
     @PostMapping("/actualizar/{codigoDetalle}")
     public String actualizar(@PathVariable Integer codigoDetalle, @ModelAttribute DetalleVenta detalle) {
         try {
+            detalle.setCodigoDetalle(codigoDetalle);
             detalleVentaService.guardar(detalle);
+            if (detalle.getVenta() != null) {
+                return "redirect:/ventas/" + detalle.getVenta().getCodigoVenta();
+            }
             return "redirect:/detalles_ventas";
         } catch (RuntimeException e) {
             return "redirect:/detalles_ventas/editar/" + codigoDetalle + "?error=" + e.getMessage();
@@ -114,11 +135,22 @@ public class DetalleVentaController {
 
     @GetMapping("/eliminar/{codigoDetalle}")
     public String eliminar(@PathVariable Integer codigoDetalle) {
+        Long ventaId = null;
         try {
+            DetalleVenta dv = detalleVentaService.buscarPorId(codigoDetalle).orElse(null);
+            if (dv != null && dv.getVenta() != null) {
+                ventaId = dv.getVenta().getCodigoVenta();
+            }
             detalleVentaService.eliminar(codigoDetalle);
+            if (ventaId != null) {
+                return "redirect:/ventas/" + ventaId;
+            }
             return "redirect:/detalles_ventas";
         } catch (Exception e) {
-            return "redirect:/detalles_ventas?error=No se pudo eliminar el detalle";
+            if (ventaId != null) {
+                return "redirect:/ventas/" + ventaId + "?error=No se pudo eliminar el detalle de la venta xd";
+            }
+            return "redirect:/detalles_ventas?error=No se pudo eliminar el detalle de la venta xd";
         }
     }
 }
