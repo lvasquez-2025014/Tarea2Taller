@@ -1,20 +1,4 @@
--- =====================================================================
--- KINALAPP - SCRIPT DE BASE DE DATOS (MySQL Workbench)
--- =====================================================================
--- Compatible con el proyecto Spring Boot KinalApp.
--- Crea la base de datos, tablas y datos iniciales (productos y clientes).
--- El usuario administrador se crea AUTOMATICAMENTE al arrancar el
--- backend mediante AdminSeeder.java (no es necesario insertarlo aqui).
---
--- Credenciales de admin (auto-creadas por la aplicacion):
---   Usuario:    admin
---   Contrasena: admin12345
---
--- Para ejecutar:
---   1. Abrir MySQL Workbench.
---   2. Conectar a tu instancia local (localhost:3306).
---   3. Abrir este archivo y ejecutar TODO (Ctrl + Shift + Enter).
--- =====================================================================
+
 
 CREATE DATABASE IF NOT EXISTS dbClientess_in5am
     CHARACTER SET utf8mb4
@@ -22,9 +6,6 @@ CREATE DATABASE IF NOT EXISTS dbClientess_in5am
 
 USE dbClientess_in5am;
 
--- ---------------------------------------------------------------------
--- Tabla: usuarios
--- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS usuarios (
     codigo_usuario BIGINT NOT NULL AUTO_INCREMENT,
     username       VARCHAR(50)  NOT NULL,
@@ -36,9 +17,6 @@ CREATE TABLE IF NOT EXISTS usuarios (
     UNIQUE KEY uk_usuarios_username (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ---------------------------------------------------------------------
--- Tabla: clientes
--- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS clientes (
     dpi_cliente      VARCHAR(20)  NOT NULL,
     nombre_cliente   VARCHAR(80)  NOT NULL,
@@ -49,9 +27,7 @@ CREATE TABLE IF NOT EXISTS clientes (
     PRIMARY KEY (dpi_cliente)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ---------------------------------------------------------------------
--- Tabla: productos
--- ---------------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS productos (
     codigo_producto INT NOT NULL AUTO_INCREMENT,
     nombre_producto VARCHAR(120) NOT NULL,
@@ -61,9 +37,7 @@ CREATE TABLE IF NOT EXISTS productos (
     PRIMARY KEY (codigo_producto)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ---------------------------------------------------------------------
--- Tabla: ventas
--- ---------------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS ventas (
     codigo_venta   BIGINT NOT NULL AUTO_INCREMENT,
     fecha_venta    DATE   NULL,
@@ -81,9 +55,7 @@ CREATE TABLE IF NOT EXISTS ventas (
         ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ---------------------------------------------------------------------
--- Tabla: detalles_ventas
--- ---------------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS detalles_ventas (
     codigo_detalle  INT NOT NULL AUTO_INCREMENT,
     codigo_venta    BIGINT NULL,
@@ -102,12 +74,7 @@ CREATE TABLE IF NOT EXISTS detalles_ventas (
         ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- =====================================================================
--- DATOS INICIALES: PRODUCTOS
--- =====================================================================
--- Catalogo base disponible para clientes y empleados.
--- Los clientes (rol CLIENTE) pueden ver estos productos y comprarlos.
--- =====================================================================
+
 INSERT INTO productos (nombre_producto, precio, stock, estado) VALUES
 ('Laptop HP 240 G9 Intel i5',         5499.00, 12, 1),
 ('Laptop Lenovo IdeaPad 3 Ryzen 5',   4799.00, 10, 1),
@@ -135,9 +102,7 @@ INSERT INTO productos (nombre_producto, precio, stock, estado) VALUES
 ('Adaptador HDMI a VGA',                79.00, 45, 1),
 ('Power Bank 20000mAh USB-C',          329.00, 17, 1);
 
--- =====================================================================
--- DATOS INICIALES: CLIENTES DE EJEMPLO
--- =====================================================================
+
 INSERT INTO clientes (dpi_cliente, nombre_cliente, apellido_cliente, direccion, estado) VALUES
 ('2998123450101', 'Ludwing',  'Vasquez',  'Zona 5, Guatemala',   1),
 ('3014987650108', 'Maria',    'Hernandez','Zona 11, Mixco',      1),
@@ -145,9 +110,7 @@ INSERT INTO clientes (dpi_cliente, nombre_cliente, apellido_cliente, direccion, 
 ('2734556780101', 'Andrea',   'Garcia',   'San Miguel Petapa',   1),
 ('1922344560110', 'Jose',     'Morales',  'Antigua Guatemala',   1);
 
--- =====================================================================
--- VERIFICACION
--- =====================================================================
+
 SELECT 'usuarios'         AS tabla, COUNT(*) AS total FROM usuarios
 UNION ALL SELECT 'clientes',         COUNT(*) FROM clientes
 UNION ALL SELECT 'productos',        COUNT(*) FROM productos
