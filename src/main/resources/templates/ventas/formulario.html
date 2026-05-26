@@ -199,7 +199,7 @@
   <main class="main-content">
     <header class="top-header">
       <div class="header-left">
-        <h1 class="page-title" th:text="${editar} ? 'Editar Compra' : 'Nueva Compra'">Formulario</h1>
+        <h1 class="page-title" th:text="${editar} ? 'Editar Venta' : 'Nueva Venta'">Formulario</h1>
         <span class="breadcrumb"><a href="/dashboard">Dashboard</a> / <a href="/ventas/dashboard">Ventas</a> / <span th:text="${editar} ? 'Editar' : 'Nuevo'">Nuevo</span></span>
       </div>
       <div class="header-right">
@@ -212,19 +212,19 @@
 
     <div class="content">
       <div class="page-header">
-        <h1 th:text="${editar} ? 'Editar Compra' : 'Crear Nueva Compra'">Formulario</h1>
-        <p th:text="${editar} ? 'Actualiza la información de la compra' : 'Registra una nueva compra'"></p>
+        <h1 th:text="${editar} ? 'Editar Venta' : 'Crear Nueva Venta'">Formulario</h1>
+        <p th:text="${editar} ? 'Actualiza la información de la venta' : 'Registra una nueva venta'"></p>
       </div>
 
       <div th:if="${param.error}" class="alert alert-error" th:text="${param.error}"></div>
 
       <div class="info-box">
-        <p><strong>Nota:</strong> Para crear una compra completa con productos, usa el dashboard de compra. Este formulario es para edición básica.</p>
+        <p><strong>Nota:</strong> Para crear una venta completa con productos, usa el dashboard de ventas. Este formulario es para edición básica.</p>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <div class="card-title" th:text="${editar} ? 'Información de la Compra    ' : 'Datos de la Compra'"></div>
+          <div class="card-title" th:text="${editar} ? 'Información de la Venta' : 'Datos de la Venta'"></div>
           <div class="card-subtitle">Todos los campos son obligatorios</div>
         </div>
 
@@ -312,7 +312,7 @@
                   </tbody>
                   <tfoot>
                     <tr style="border-top: 1px solid rgba(201, 168, 76, 0.2); background: rgba(201, 168, 76, 0.03);">
-                      <td colspan="3" style="padding: 12px 16px; font-size: 0.85rem; font-weight: 600; text-align: right; color: var(--text-primary);">Total Compra:</td>
+                      <td colspan="3" style="padding: 12px 16px; font-size: 0.85rem; font-weight: 600; text-align: right; color: var(--text-primary);">Total Venta:</td>
                       <td id="grandTotalText" style="padding: 12px 16px; font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 700; text-align: right; color: var(--flame);">Q0.00</td>
                       <td></td>
                     </tr>
@@ -336,7 +336,8 @@
     </div>
   </main>
 
-  <script th:if="${!editar}">
+  <script th:if="${!editar}" th:inline="javascript">
+    /*[[*/
     const tempProductoId = document.getElementById('tempProductoId');
     const tempCantidad = document.getElementById('tempCantidad');
     const tempPrecioUnitario = document.getElementById('tempPrecioUnitario');
@@ -502,6 +503,7 @@
         alert('Debes agregar al menos un producto a la lista antes de registrar la venta.');
       }
     });
+    /*]]*/
   </script>
 </body>
 </html>
