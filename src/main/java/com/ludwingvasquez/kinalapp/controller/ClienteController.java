@@ -147,6 +147,11 @@ public class ClienteController {
             if (!clienteService.existePorDPI(dpi)) {
                 return "redirect:/clientes?error=No encontrado";
             }
+            // Verificar si el cliente tiene ventas asociadas
+            long ventasAsociadas = ventaService.contarVentasPorCliente(dpi);
+            if (ventasAsociadas > 0) {
+                return "redirect:/clientes?error=No se puede eliminar el cliente porque tiene " + ventasAsociadas + " venta(s) asociada(s)";
+            }
             clienteService.eliminar(dpi);
             return "redirect:/clientes";
         } catch (RuntimeException e) {
