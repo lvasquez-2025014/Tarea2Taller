@@ -270,7 +270,7 @@
         <h1 class="page-title">Lista de Productos</h1>
         <span class="breadcrumb"><a href="/dashboard">Dashboard</a> / <a href="/productos/dashboard">Productos</a> / Lista</span>
       </div>
-      <div class="header-right">
+      <div class="header-right" th:if="${rolUsuario != 'CLIENTE'}">
         <a href="/productos/nuevo" class="btn-header">
           <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Nuevo Producto
@@ -317,8 +317,8 @@
                 <td>
                   <div class="actions">
                     <a th:href="@{/productos/{id}(id=${producto.codigo_producto})}" class="btn-action btn-view">Ver</a>
-                    <a th:href="@{/productos/editar/{id}(id=${producto.codigo_producto})}" class="btn-action btn-edit">Editar</a>
-                    <a th:href="@{/productos/eliminar/{id}(id=${producto.codigo_producto})}" class="btn-action btn-delete">Eliminar</a>
+                    <a th:if="${rolUsuario == 'ADMIN'}" th:href="@{/productos/editar/{id}(id=${producto.codigo_producto})}" class="btn-action btn-edit">Editar</a>
+                    <a th:if="${rolUsuario == 'ADMIN'}" th:href="@{/productos/eliminar/{id}(id=${producto.codigo_producto})}" class="btn-action btn-delete">Eliminar</a>
                   </div>
                 </td>
               </tr>
