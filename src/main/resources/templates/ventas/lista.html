@@ -317,7 +317,7 @@
                   <div class="actions">
                     <a th:href="@{/ventas/{id}(id=${venta.codigoVenta})}" class="btn-action btn-view">Ver</a>
                     <a th:href="@{/ventas/editar/{id}(id=${venta.codigoVenta})}" class="btn-action btn-edit">Editar</a>
-                    <a th:href="@{/ventas/eliminar/{id}(id=${venta.codigoVenta})}" class="btn-action btn-delete">Eliminar</a>
+                    <a th:if="${rolUsuario == 'ADMIN'}" th:href="@{/ventas/eliminar/{id}(id=${venta.codigoVenta})}" class="btn-action btn-delete">Eliminar</a>
                   </div>
                 </td>
               </tr>
