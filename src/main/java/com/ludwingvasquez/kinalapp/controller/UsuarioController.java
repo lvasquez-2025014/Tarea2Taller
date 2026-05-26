@@ -2,6 +2,7 @@ package com.ludwingvasquez.kinalapp.controller;
 
 import com.ludwingvasquez.kinalapp.entity.Usuario;
 import com.ludwingvasquez.kinalapp.service.IUsuarioService;
+import com.ludwingvasquez.kinalapp.service.IVentaService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -15,9 +16,11 @@ import java.util.List;
 public class UsuarioController {
 
     private final IUsuarioService usuarioService;
+    private final IVentaService ventaService;
 
-    public UsuarioController(IUsuarioService usuarioService) {
+    public UsuarioController(IUsuarioService usuarioService, IVentaService ventaService) {
         this.usuarioService = usuarioService;
+        this.ventaService = ventaService;
     }
 
     @ModelAttribute
@@ -142,6 +145,14 @@ public class UsuarioController {
             return "acceso-denegado";
         }
         try {
+            if (!usuarioService.buscarPorId(codigo_usuario).isPresent()) {
+                return "redirect:/usuarios?error=Usuario no encontrado";
+            }
+            // Verificar si el usuario tiene ventas asociadas
+            long ventasAsociadas = ventaService.contarVentasPorUsuario(codigo_usuario);
+            if (ventasAsociadas > 0) {
+                return "redirect:/usuarios?error=No se puede eliminar el usuario porque tiene " + ventasAsociadas + " venta(s) asociada(s)";
+            }
             usuarioService.eliminar(codigo_usuario);
             return "redirect:/usuarios";
         } catch (RuntimeException e) {
