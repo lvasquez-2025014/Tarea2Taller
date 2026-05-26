@@ -114,6 +114,16 @@ public class VentaService implements IVentaService {
 
     @Override
     @Transactional(readOnly = true)
+    public long contarVentasPorUsuario(Long codigo_usuario) {
+        return ventasRepository.findAll().stream()
+            .filter(v -> v.getUsuario() != null 
+                && codigo_usuario.equals(v.getUsuario().getCodigoUsuario())
+                && v.getEstado() != null && v.getEstado() == 1)
+            .count();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public double calcularTotalVentasPorCliente(String dpiCliente) {
         return ventasRepository.findAll().stream()
             .filter(v -> v.getCliente() != null 
