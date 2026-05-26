@@ -14,6 +14,7 @@ public interface IVentaService {
     List<Venta> listarActivas();
 
     long contarVentasPorCliente(String dpiCliente);
+    long contarVentasPorUsuario(Long codigo_usuario);
     double calcularTotalVentasPorCliente(String dpiCliente);
     int contarTotalVentas();
     double calcularIngresosTotales();
