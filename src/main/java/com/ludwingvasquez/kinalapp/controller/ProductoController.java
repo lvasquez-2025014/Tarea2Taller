@@ -1,6 +1,7 @@
 package com.ludwingvasquez.kinalapp.controller;
 
 import com.ludwingvasquez.kinalapp.entity.Producto;
+import com.ludwingvasquez.kinalapp.service.IDetalleVentaService;
 import com.ludwingvasquez.kinalapp.service.IProductoService;
 import com.ludwingvasquez.kinalapp.service.IUsuarioService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,10 +20,12 @@ public class ProductoController {
 
     private final IProductoService productoService;
     private final IUsuarioService usuarioService;
+    private final IDetalleVentaService detalleVentaService;
 
-    public ProductoController(IProductoService productoService, IUsuarioService usuarioService) {
+    public ProductoController(IProductoService productoService, IUsuarioService usuarioService, IDetalleVentaService detalleVentaService) {
         this.productoService = productoService;
         this.usuarioService = usuarioService;
+        this.detalleVentaService = detalleVentaService;
     }
 
     @ModelAttribute
@@ -117,6 +120,14 @@ public class ProductoController {
     @GetMapping("/eliminar/{id}")
     public String eliminar(@PathVariable Integer id) {
         try {
+            if (!productoService.buscarPorCodigo(id).isPresent()) {
+                return "redirect:/productos?error=Producto no encontrado";
+            }
+            // Verificar si el producto tiene ventas asociadas
+            long ventasAsociadas = detalleVentaService.contarDetallesPorProducto(id);
+            if (ventasAsociadas > 0) {
+                return "redirect:/productos?error=No se puede eliminar el producto porque tiene " + ventasAsociadas + " venta(s) asociada(s)";
+            }
             productoService.eliminar(id);
             return "redirect:/productos";
         } catch (RuntimeException e) {
