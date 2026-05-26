@@ -2,6 +2,8 @@ package com.ludwingvasquez.kinalapp.repository;
 
 import com.ludwingvasquez.kinalapp.entity.DetalleVenta;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -11,4 +13,7 @@ public interface DetalleVentaRepository extends JpaRepository<DetalleVenta, Inte
 
     List<DetalleVenta> findByEstado(Long estado);
     List<DetalleVenta> findByVenta_CodigoVenta(Integer codigoVenta);
+    
+    @Query("SELECT COUNT(d) FROM DetalleVenta d WHERE d.producto.codigo_producto = :codigo_producto")
+    long countByProducto_codigo_producto(@Param("codigo_producto") Integer codigo_producto);
 }
