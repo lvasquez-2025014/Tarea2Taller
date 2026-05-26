@@ -365,7 +365,7 @@
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input type="text" placeholder="Buscar producto...">
           </div>
-          <a sec:authorize="hasAnyRole('ADMIN','USER')" th:href="@{/productos/nuevo}" class="header-btn" style="text-decoration:none;" title="Nuevo Producto">
+          <a sec:authorize="hasRole('ADMIN')" th:href="@{/productos/nuevo}" class="header-btn" style="text-decoration:none;" title="Nuevo Producto">
             <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </a>
           <button class="header-btn">
@@ -435,7 +435,7 @@
                 <div class="card-title">Catálogo de Productos</div>
                 <div class="card-subtitle" th:text="${totalProductos} + ' productos registrados'">156 productos registrados</div>
               </div>
-              <div class="card-actions" sec:authorize="hasAnyRole('ADMIN','USER')">
+              <div class="card-actions" sec:authorize="hasRole('ADMIN')">
                 <button class="card-action-btn">Filtrar</button>
                 <button class="card-action-btn">Exportar</button>
                 <a th:href="@{/productos/nuevo}" class="card-action-btn primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
@@ -573,7 +573,7 @@
           </div>
           <div class="card-body">
             <div class="quick-actions">
-              <a sec:authorize="hasAnyRole('ADMIN','USER')" th:href="@{/productos/nuevo}" class="quick-action-btn" style="text-decoration:none;">
+              <a sec:authorize="hasRole('ADMIN')" th:href="@{/productos/nuevo}" class="quick-action-btn" style="text-decoration:none;">
                 <div class="quick-action-icon" style="background:linear-gradient(135deg,var(--gold-dark),var(--gold));">
                   <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </div>
