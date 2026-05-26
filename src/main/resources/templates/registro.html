@@ -100,20 +100,6 @@
               <span class="input-underline"></span>
             </div>
 
-            <div class="input-wrap" style="margin-bottom: 12px;">
-              <select name="rol" class="input-field" required style="padding-left: 42px; appearance: none; cursor: pointer;">
-                <option value="" disabled selected>Selecciona un rol</option>
-                <option value="USER" th:selected="${rol == 'USER'}">Usuario (USER)</option>
-                <option value="CLIENTE" th:selected="${rol == 'CLIENTE'}">Cliente (CLIENTE)</option>
-              </select>
-              <label class="input-label">Tipo de cuenta</label>
-              <span class="input-icon">
-                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m22 11-2-2-2 2"/><path d="M18 9v6"/></svg>
-              </span>
-              <span class="state-dot"></span>
-              <span class="input-underline"></span>
-            </div>
-
             <label class="check-row" style="margin: 12px 0 20px; padding: 4px 0;">
               <input type="checkbox" name="terms" required>
               <span class="check-box"></span>
