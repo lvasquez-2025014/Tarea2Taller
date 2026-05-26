@@ -85,4 +85,10 @@ public class DetalleVentaService implements IDetalleVentaService {
     public List<DetalleVenta> listarPorVenta(Integer codigoVenta) {
         return detalleVentaRepository.findByVenta_CodigoVenta(codigoVenta);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long contarDetallesPorProducto(Integer codigo_producto) {
+        return detalleVentaRepository.countByProducto_codigo_producto(codigo_producto);
+    }
 }
