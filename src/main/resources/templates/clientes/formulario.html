@@ -254,20 +254,6 @@
           </div>
 
           <div class="form-group">
-            <label for="fotoUrl">URL de Foto de Perfil</label>
-            <input type="url" id="fotoUrl" th:field="*{fotoUrl}" placeholder="https://ejemplo.com/foto.jpg">
-            <small style="font-size:0.75rem;color:var(--text-muted);display:block;margin-top:4px;">Ingrese la URL de una imagen (opcional). Se mostrará un avatar con iniciales si no se proporciona.</small>
-          </div>
-
-          <!-- Vista previa de la foto -->
-          <div class="form-group" th:if="${cliente.fotoUrl != null && !cliente.fotoUrl.isEmpty()}">
-            <label>Vista Previa</label>
-            <div style="width:80px;height:80px;border-radius:50%;overflow:hidden;border:2px solid var(--gold);">
-              <img th:src="${cliente.fotoUrl}" style="width:100%;height:100%;object-fit:cover;" alt="Vista previa">
-            </div>
-          </div>
-
-          <div class="form-group">
             <label for="estado">Estado *</label>
             <select id="estado" th:field="*{estado}" required>
               <option value="1">Activo - Cliente habilitado</option>
