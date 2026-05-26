@@ -13,4 +13,5 @@ public interface IDetalleVentaService {
     void eliminar(Integer codigoDetalle);
     boolean existePorId(Integer codigoDetalle);
     List<DetalleVenta> listarPorVenta(Integer codigoVenta);
+    long contarDetallesPorProducto(Integer codigoProducto);
 }
