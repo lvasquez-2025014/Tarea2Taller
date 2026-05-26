@@ -8,7 +8,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpSession;
 import java.util.List;
 
 @Controller
@@ -22,15 +21,22 @@ public class UsuarioController {
     }
 
     @ModelAttribute
-    public void agregarUsuarioAlModelo(Model model, HttpSession session) {
-        String nombreUsuario = (String) session.getAttribute("nombreUsuario");
-        String emailUsuario = (String) session.getAttribute("emailUsuario");
-        String rolUsuario = (String) session.getAttribute("rolUsuario");
-        
-        if (nombreUsuario != null) {
+    public void agregarUsuarioAlModelo(Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+            String nombreUsuario = auth.getName();
+            String rolUsuario = auth.getAuthorities().stream()
+                    .findFirst()
+                    .map(a -> a.getAuthority().replace("ROLE_", ""))
+                    .orElse("Usuario");
+            
+            String emailUsuario = usuarioService.buscarPorUsername(nombreUsuario)
+                    .map(u -> u.getEmail())
+                    .orElse("");
+            
             model.addAttribute("nombreUsuario", nombreUsuario);
             model.addAttribute("emailUsuario", emailUsuario);
-            model.addAttribute("rolUsuario", rolUsuario != null ? rolUsuario : "Usuario");
+            model.addAttribute("rolUsuario", rolUsuario);
             model.addAttribute("inicialesUsuario", obtenerIniciales(nombreUsuario));
         }
     }
